@@ -1,0 +1,70 @@
+{
+  "name": "digisteps",
+  "version": "0.1.0",
+  "homepage": "https://ladigitale.dev/digisteps/",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/ladigitale/digisteps.git"
+  },
+  "author": {
+    "name": "Emmanuel ZIMMERT",
+    "email": "ez@ladigitale.dev",
+    "url": "https://ladigitale.dev"
+  },
+  "license": "GNU GPLv3",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "clipboard": "^2.0.6",
+    "core-js": "^3.20.2",
+    "destyle.css": "^2.0.0",
+    "linkify-html": "^3.0.4",
+    "linkifyjs": "^3.0.4",
+    "moment": "^2.29.1",
+    "pell": "^1.0.6",
+    "vue": "^3.2.26",
+    "vue-draggable-next": "^2.1.1",
+    "vue-router": "^4.0.10"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^4.5.15",
+    "@vue/cli-plugin-eslint": "^4.5.15",
+    "@vue/cli-plugin-router": "^4.5.15",
+    "@vue/cli-service": "^4.5.15",
+    "@vue/compiler-sfc": "^3.2.26",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.0.0",
+    "eslint-plugin-vue": "^7.0.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/vue3-essential",
+      "eslint:recommended"
+    ],
+    "rules": {
+      "no-prototype-builtins": "off",
+      "generator-star-spacing": "off",
+      "indent": [
+        "error",
+        "tab"
+      ],
+      "no-tabs": 0,
+      "no-console": 0
+    },
+    "parserOptions": {
+      "parser": "babel-eslint"
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

@@ -1,0 +1,348 @@
+<template>
+	<div id="page">
+		<div id="accueil" :style="{'background-image': 'url(./static/img/digisteps.jpg)'}">
+			<div id="masque" />
+			<div id="conteneur">
+				<div id="contenu">
+					<h1>
+						<span>Digisteps</span> <span>by La Digitale</span>
+					</h1>
+					<div>
+						<p><strong>Digisteps</strong> permet de créer des <strong>parcours pédagogiques</strong> en ligne.</p>
+						<span id="bouton" role="button" tabindex="0" @click="ouvrirModaleParcours">Créer un parcours</span>
+					</div>
+				</div>
+				<div id="credits">
+					<p><a href="https://opencollective.com/ladigitale" target="_blank" rel="noreferrer">Je souhaite apporter mon soutien ❤️.</a></p>
+					<p>{{ new Date().getFullYear() }} - <a href="https://ladigitale.dev" target="_blank" rel="noreferrer">La Digitale</a> - <a href="https://gitlab.com/ladigitale/digisteps" target="_blank" rel="noreferrer">Code source</a> - <span class="hub" @click="ouvrirHub"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#001d1d" width="36px" height="36px"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg></span></p>
+				</div>
+			</div>
+		</div>
+		<div class="conteneur-modale" v-if="modale === 'parcours'">
+			<div class="modale">
+				<header>
+					<span class="titre">Nouveau parcours pédagogique</span>
+					<span class="fermer" role="button" tabindex="0" @click="fermerModaleParcours"><i class="material-icons">close</i></span>
+				</header>
+				<div class="conteneur">
+					<div class="contenu">
+						<label>Nom du parcours</label>
+						<input type="text" :value="nom" @input="nom = $event.target.value">
+						<label>Question secrète</label>
+						<select :value="question" @change="question = $event.target.value">
+							<option v-for="(item, index) in questions" :key="'option_' + index">{{ item }}</option>
+						</select>
+						<label>Réponse secrète (pour édition ultérieure)</label>
+						<input type="text" :value="reponse" @input="reponse = $event.target.value" @keydown.enter="creerParcours">
+						<div class="actions">
+							<span class="bouton" role="button" tabindex="0" @click="creerParcours">Créer</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="hub" :class="{'ouvert': hub}">
+			<span @click="fermerHub"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fff" width="36px" height="36px"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></span>
+			<iframe src="https://ladigitale.dev/hub.html"></iframe>
+		</div>
+	</div>
+</template>
+
+<script>
+export default {
+	name: 'Accueil',
+	data () {
+		return {
+			modale: '',
+			nom: '',
+			question: '',
+			questions: ['Quel est mon mot préféré ?', 'Quel est mon film préféré ?', 'Quelle est ma chanson préférée ?', 'Quel est le prénom de ma mère ?', 'Quel est le prénom de mon père ?', 'Quel est le nom de ma rue ?', 'Quel est le nom de mon employeur ?', 'Quel est le nom de mon animal de compagnie ?'],
+			reponse: '',
+			hub: false
+		}
+	},
+	mounted () {
+		setTimeout(function () {
+			this.$parent.$parent.chargement = false
+		}.bind(this), 300)
+	},
+	methods: {
+		ouvrirModaleParcours () {
+			this.modale = 'parcours'
+		},
+		fermerModaleParcours () {
+			this.modale = ''
+			this.nom = ''
+			this.question = ''
+			this.reponse = ''
+		},
+		creerParcours () {
+			if (this.nom !== '' && this.question !== '' && this.reponse !== '') {
+				this.$parent.$parent.chargement = true
+				const xhr = new XMLHttpRequest()
+				xhr.onload = function () {
+					if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+						this.$parent.$parent.chargement = false
+						this.fermerModaleParcours()
+						if (xhr.responseText !== 'erreur') {
+							const donnees = JSON.parse(xhr.responseText)
+							localStorage.setItem('session', donnees.session)
+							this.$router.push('/s/' + donnees.url)
+						} else {
+							this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+						}
+					} else {
+						this.$parent.$parent.chargement = false
+						this.fermerModaleParcours()
+						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+					}
+				}.bind(this)
+				xhr.open('POST', this.$parent.$parent.hote + '/inc/creer_parcours.php', true)
+				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+				xhr.send('nom=' + this.nom + '&question=' + this.question + '&reponse=' + this.reponse)
+			} else {
+				if (this.nom === '') {
+					this.$parent.$parent.message = 'Veuillez complétez le champ «&nbsp;Nom du parcours&nbsp;».'
+				} else if (this.question === '') {
+					this.$parent.$parent.message = 'Veuillez sélectionner une question secrète.'
+				} else if (this.reponse === '') {
+					this.$parent.$parent.message = 'Veuillez complétez le champ «&nbsp;Réponse secrète&nbsp;».'
+				}
+			}
+		},
+		ouvrirHub () {
+			this.hub = true
+		},
+		fermerHub () {
+			this.hub = false
+		}
+	}
+}
+</script>
+
+<style scoped>
+#page,
+#accueil {
+	width: 100%;
+	height: 100vh;
+}
+
+#accueil {
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+#masque {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(255, 255, 255, 0.7);
+}
+
+#conteneur {
+	position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+	flex-wrap: wrap;
+	overflow: auto;
+}
+
+#contenu {
+	max-width: 76em;
+	text-align: center;
+	padding: 12em 1em 6em;
+	margin: auto;
+}
+
+#conteneur h1 {
+    font-family: 'HKGroteskWide-ExtraBold', 'HKGrotesk-ExtraBold', sans-serif;
+    font-size: 3em;
+	font-weight: 900;
+    margin-bottom: 0.85em;
+    line-height: 1.4;
+}
+
+#conteneur p {
+    font-size: 1.25em;
+    font-weight: 400;
+    line-height: 1.4;
+    margin-bottom: 1.5em;
+}
+
+#credits {
+	width: 100%;
+	margin: 0 auto 0.75em;
+}
+
+#credits p {
+    font-size: 1em;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 1em;
+	text-align: center;
+}
+
+#credits p:last-child {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+#credits p:last-child a {
+	margin: 0 5px;
+}
+
+#credits .hub {
+	font-size: 0;
+	cursor: pointer;
+}
+
+#hub {
+	position: fixed;
+	visibility: hidden;
+	opacity: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+	z-index: 100000;
+}
+
+#hub.ouvert {
+	visibility: visible;
+	opacity: 1;
+    animation: fonduEntrant linear 0.1s;
+}
+
+@keyframes fonduEntrant {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+#hub iframe {
+	width: 100%;
+    height: 100%;
+}
+
+#hub span {
+	font-size: 0;
+	color: #fff;
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	cursor: pointer;
+}
+
+@media screen and (max-width: 359px) {
+	#contenu {
+		padding: 4em 1em 2em;
+	}
+
+	#bouton {
+		font-size: 0.75em!important;
+	}
+}
+
+@media screen and (min-width: 360px) and (max-width: 599px) {
+	#contenu {
+		padding: 5em 1em 2.5em;
+	}
+}
+
+@media screen and (max-width: 399px) {
+	#conteneur h1 span {
+		display: block;
+	}
+}
+
+@media screen and (max-width: 599px) {
+	#conteneur h1 {
+		font-size: 2em;
+		margin-bottom: 1em;
+	}
+
+	#conteneur p {
+		font-size: 1em;
+		margin-bottom: 1.2em;
+	}
+	
+	#bouton {
+		font-size: 0.85em;
+	}
+	
+	#credits p {
+		font-size: 0.85em;
+	}
+
+	#hub span {
+		top: 5px;
+		right: 5px;
+	}
+	
+	#hub span svg {
+		width: 24px;
+		height: 24px;
+	}
+}
+
+@media screen and (max-width: 599px) and (orientation: landscape) {
+	#contenu {
+		padding: 2em 1em 1.5em!important;
+	}
+}
+
+@media screen and (min-width: 600px) and (max-width: 820px) and (orientation: landscape) {
+	#contenu {
+		padding: 3em 1em 1.5em!important;
+	}
+}
+
+@media screen and (max-width: 820px) and (orientation: landscape) {
+	#conteneur p {
+		font-size: 1em!important;
+	}
+	
+	#credits p {
+		font-size: 0.85em!important;
+		margin-bottom: 0.85em!important;
+	}
+}
+
+@media screen and (max-width: 1023px) and (orientation: landscape) {
+	#contenu {
+		padding: 7em 1em 3.5em;
+	}
+}
+
+@media screen and (max-width: 850px) and (max-height: 500px) {
+	#conteneur h1 {
+		font-size: 2em;
+		margin-bottom: 1em;
+	}
+
+	#conteneur p {
+		font-size: 1em;
+		margin-bottom: 1.2em;
+	}
+	
+	#bouton {
+		font-size: 0.85em!important;
+	}
+	
+	#credits p {
+		font-size: 0.85em;
+	}
+}
+</style>
