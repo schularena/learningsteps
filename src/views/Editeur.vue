@@ -179,8 +179,14 @@
 								<input id="champ-lien" type="text" placeholder="Exemples : https://ladigitale.dev/digiplay, https://ladigitale.dev/digiread" :value="lien" @input="lien = $event.target.value" v-if="type === 'document' && ressource === 'lien'">
 								<input id="champ-lien" type="text" placeholder="Exemples : https://digipad.app, https://digistorm.app, https://ladigitale.dev/digiquiz" :value="lien" @input="lien = $event.target.value" v-else-if="type !== 'document' && ressource === 'lien'">
 								<label v-if="ressource === 'fichier'">Fichier (max. 2 Mo)</label>
-								<label for="televerser" class="bouton" role="button" tabindex="0" v-if="ressource === 'fichier'">{{ labelTeleverser }}</label>
-								<input id="televerser" type="file" accept=".jpg, .jpeg, .png, .gif, .mp3, .mp4, .pdf, .doc, .docx, .odt, .ppt, .pptx, .odp, .xls, .xlsx, .ods" @change="selectionnerFichier" style="display: none;" v-if="ressource === 'fichier'">
+								<div id="fichier">
+									<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + fichier" target="_blank" v-if="ressource === 'fichier' && mode === 'edition' && fichier !== ''">Voir le fichier actuel</a>
+									<label for="televerser" class="bouton" role="button" tabindex="0" v-if="ressource === 'fichier' && fichier === ''">Téléverser un fichier</label>
+									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="ressource === 'fichier' && mode === 'creation' && fichier !== ''">{{ fichier }}</label>
+									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="ressource === 'fichier' && mode === 'edition' && fichier !== '' && ancienFichier === fichier">Remplacer le fichier</label>
+									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="ressource === 'fichier' && mode === 'edition' && fichier !== '' && ancienFichier !== fichier">{{ fichier }}</label>
+									<input id="televerser" type="file" accept=".jpg, .jpeg, .png, .gif, .mp3, .mp4, .pdf, .doc, .docx, .odt, .ppt, .pptx, .odp, .xls, .xlsx, .ods" @change="selectionnerFichier" style="display: none;" v-if="ressource === 'fichier'">
+								</div>
 							</template>
 							<label v-if="type === 'seance'">Durée</label>
 							<label v-else>Durée estimée</label>
@@ -468,6 +474,7 @@ export default {
 			ressource: 'lien',
 			lien: '',
 			fichier: '',
+			ancienFichier: '',
 			vignette: '',
 			heures: 0,
 			minutes: 0,
@@ -475,7 +482,6 @@ export default {
 			couleurs: ['#00ced1', '#55efc4', '#74b9ff', '#a29bfe', '#ffeaa7', '#fab1a0', '#fea7c6'],
 			codeqr: '',
 			position: 0,
-			labelTeleverser: 'Téléverser un fichier',
 			progression: 0
 		}
 	},
@@ -638,6 +644,7 @@ export default {
 				this.lieu = item.lieu
 				this.lien = item.lien
 				this.fichier = item.fichier
+				this.ancienFichier = item.fichier
 				if (this.lien !== '') {
 					this.ressource = 'lien'
 				} else if (this.fichier !== '') {
@@ -707,7 +714,6 @@ export default {
 				this.ressource = 'lien'
 				this.lien = ''
 				this.fichier = ''
-				this.labelTeleverser = 'Téléverser un fichier'
 				this.heures = 0
 				this.minutes = 0
 				this.vignette = ''
@@ -716,7 +722,6 @@ export default {
 				this.ressource = 'lien'
 				this.lien = ''
 				this.fichier = ''
-				this.labelTeleverser = 'Téléverser un fichier'
 				this.vignette = 'icone_meeting_room'
 				break
 			case 'document':
@@ -755,7 +760,6 @@ export default {
 			document.querySelector('#texte .bouton-editeur label[for="couleur-texte"]').style.color = event.target.value
 		},
 		selectionnerFichier (event) {
-			this.labelTeleverser = event.target.files[0].name
 			this.fichier = event.target.files[0].name
 		},
 		selectionnerCouleur (couleur) {
@@ -797,11 +801,13 @@ export default {
 		televerserFichier () {
 			return new Promise(function (resolve) {
 				this.modale = 'televerser'
-				const fichier = document.querySelector('#televerser').files[0]
-				if (fichier.size < 2 * 1024000) {
+				const blob = document.querySelector('#televerser').files[0]
+				if (blob.size < 2 * 1024000) {
 					const formData = new FormData()
+					formData.append('ancienfichier', this.ancienFichier)
+					formData.append('fichier', this.fichier)
 					formData.append('parcours', this.id)
-					formData.append('fichier', fichier)
+					formData.append('blob', blob)
 					const xhr = new XMLHttpRequest()
 					xhr.onload = function () {
 						if (xhr.readyState === xhr.DONE && xhr.status === 200) {
@@ -812,6 +818,7 @@ export default {
 								resolve('erreur')
 							} else {
 								this.modale = ''
+								this.ancienFichier = ''
 								resolve(xhr.responseText)
 							}
 						} else {
@@ -901,7 +908,7 @@ export default {
 			if (this.verifierBloc() === false) {
 				return false
 			}
-			if (this.ressource === 'fichier' && this.fichier !== '') {
+			if (this.ressource === 'fichier' && this.fichier !== this.ancienFichier) {
 				this.fichier = await this.televerserFichier()
 				if (this.fichier === 'erreur') {
 					return false
@@ -978,11 +985,11 @@ export default {
 			this.ressource = 'lien'
 			this.lien = ''
 			this.fichier = ''
+			this.ancienFichier = ''
 			this.vignette = ''
 			this.heures = 0
 			this.minutes = 0
 			this.couleur = '#00ced1'
-			this.labelTeleverser = 'Téléverser un fichier'
 			this.progression = 0
 		},
 		modifierPositionBloc () {
@@ -1803,6 +1810,10 @@ section {
 	margin-bottom: 20px;
 	margin-left: 10px;
 	margin-right: 10px;
+}
+
+#fichier .bouton + .bouton {
+	margin-left: 20px;
 }
 
 #bloc .vignette {
