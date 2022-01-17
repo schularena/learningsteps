@@ -5,15 +5,22 @@ header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Max-Age: 1000');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 
-if (!empty($_FILES['fichier']) && !empty($_POST['parcours'])) {
+if (!empty($_FILES['blob']) && !empty($_POST['parcours'])) {
+	$fichier = $_POST['fichier'];
+	$ancienfichier = $_POST['ancienfichier'];
 	$parcours = $_POST['parcours'];
-	$extension = pathinfo($_FILES['fichier']['name'], PATHINFO_EXTENSION);
+	$extension = pathinfo($_FILES['blob']['name'], PATHINFO_EXTENSION);
 	if (!file_exists('../fichiers/' . $parcours)) {
 		mkdir('../fichiers/' . $parcours, 0775, true);
 	}
-	$nom = hash('md5', $_FILES['fichier']['tmp_name']) . time() . '.' . $extension;
-	$fichier = '../fichiers/' . $parcours . '/' . $nom;
-	if (move_uploaded_file($_FILES['fichier']['tmp_name'], $fichier)) {
+	$nom = hash('md5', $_FILES['blob']['tmp_name']) . time() . '.' . $extension;
+	$chemin = '../fichiers/' . $parcours . '/' . $nom;
+	if (move_uploaded_file($_FILES['blob']['tmp_name'], $chemin)) {
+		if ($ancienfichier !== '' && $fichier !== $ancienfichier) {
+			if (file_exists('../fichiers/' . $parcours . '/' . $ancienfichier)) {
+				unlink('../fichiers/' . $parcours . '/' . $ancienfichier);
+			}
+		}
 		echo $nom;
 	} else {
 		echo 'erreur';
