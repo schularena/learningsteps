@@ -5,6 +5,8 @@ header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Max-Age: 1000');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 
+$_POST = json_decode(file_get_contents('php://input'), true);
+
 if (!empty($_POST['session']) && $_POST['session'] !== '') {
 	session_id($_POST['session']);
 }
