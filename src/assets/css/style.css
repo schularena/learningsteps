@@ -319,68 +319,6 @@ main {
 	background: #001d1d;
 }
 
-.modale .conteneur .couleurs {
-	display: flex;
-	justify-content: flex-start;
-	align-items: center;
-	margin-bottom: 20px;
-	overflow: auto;
-}
-
-.modale .conteneur .couleurs span {
-	display: block;
-	width: 30px;
-	height: 30px;
-	border-radius: 50%;
-	margin-right: 10px;
-	cursor: pointer;
-	flex: 0 0 auto;
-}
-
-.modale .conteneur .couleurs span.icone {
-	display: flex;
-	width: 62px;
-	height: 30px;
-}
-
-.modale .conteneur .couleurs span.icone label {
-	font-size: 24px;
-	width: 24px;
-	margin-right: 8px;
-	margin-bottom: 0;
-	line-height: 30px;
-}
-
-.modale .conteneur .couleurs span input[type="color"] {
-	width: 30px;
-	height: 30px;
-	padding: 0;
-	border: none;
-	cursor: pointer;
-}
-
-.modale .conteneur .couleurs span input[type="color"]::-moz-color-swatch {
-	border: none;
-	border-radius: 50%;
-}
-
-.modale .conteneur .couleurs span input[type="color"]::-webkit-color-swatch {
-	border: none;
-	border-radius: 50%;
-}
-
-.modale .conteneur .couleurs span input[type="color"].selectionne::-moz-color-swatch {
-	border: 2px solid #000;
-}
-
-.modale .conteneur .couleurs span input[type="color"].selectionne::-webkit-color-swatch {
-	border: 2px solid #000;
-}
-
-.modale .conteneur .couleurs span.selectionne {
-	border: 2px solid #000;
-}
-
 .modale label.bouton {
 	width: auto;
 	margin-bottom: 20px;
