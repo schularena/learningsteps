@@ -59,7 +59,7 @@
 								<div class="vignette" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}">
 									<span class="icone" v-if="bloc.vignette.substring(0, 5) === 'icone'"><i class="material-icons">{{ bloc.vignette.substring(6) }}</i></span>
 									<span class="image" v-else><img :src="definirRacine() + 'static/vignettes/' + bloc.vignette + '.png'"></span>
-									<span class="duree">{{ definirDuree(bloc.heures, bloc.minutes) }}</span>
+									<span class="duree" v-if="bloc.heures > 0 || bloc.minutes > 0">{{ definirDuree(bloc.heures, bloc.minutes) }}</span>
 								</div>
 								<div class="contenu" :class="bloc.type">
 									<span class="titre" :style="{'border-color': bloc.couleur}">{{ bloc.titre }}</span>
@@ -70,9 +70,10 @@
 									</div>
 									<span class="lieu" v-if="bloc.lieu !== '' && bloc.lieu.includes('http') === false"><i class="material-icons">place</i><a :href="'https://www.openstreetmap.org/search?query=' + bloc.lieu" target="_blank">{{ bloc.lieu }}</a></span>
 									<span class="lieu" v-else-if="bloc.lieu !== '' && bloc.lieu.includes('http') === true"><i class="material-icons">voice_chat</i><a :href="bloc.lieu" target="_blank">{{ definirDomaine(bloc.lieu) }}</a></span>
-									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== ''">
+									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== '' || (bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui' && bloc.hasOwnProperty('travaux') === true && bloc.travaux.length > 0)">
 										<a class="bouton" :href="bloc.lien" target="_blank" :style="{'border-color': bloc.couleur}" v-if="bloc.lien !== ''">Ouvrir le lien</a>
-										<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" :style="{'border-color': bloc.couleur}" v-else>Télécharger le fichier</a>
+										<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" :style="{'border-color': bloc.couleur}" v-else-if="bloc.fichier !== ''">Télécharger le fichier</a>
+										<span class="bouton travaux" role="button" tabindex="0" :style="{'border-color': bloc.couleur}" v-if="bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui' && bloc.hasOwnProperty('travaux') === true && bloc.travaux.length > 0" @click="ouvrirModaleTravaux(bloc)">Afficher les travaux</span>
 									</div>
 								</div>
 								<div class="actions statique">
@@ -96,7 +97,7 @@
 								<div class="vignette" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}">
 									<span class="icone" v-if="bloc.vignette.substring(0, 5) === 'icone'"><i class="material-icons">{{ bloc.vignette.substring(6) }}</i></span>
 									<span class="image" v-else><img :src="definirRacine() + 'static/vignettes/' + bloc.vignette + '.png'"></span>
-									<span class="duree">{{ definirDuree(bloc.heures, bloc.minutes) }}</span>
+									<span class="duree" v-if="bloc.heures > 0 || bloc.minutes > 0">{{ definirDuree(bloc.heures, bloc.minutes) }}</span>
 								</div>
 								<div class="contenu" :class="bloc.type">
 									<span class="titre" :style="{'border-color': bloc.couleur}">{{ bloc.titre }}</span>
@@ -107,9 +108,10 @@
 									</div>
 									<span class="lieu" v-if="bloc.lieu !== '' && bloc.lieu.includes('http') === false"><i class="material-icons">place</i><a :href="'https://www.openstreetmap.org/search?query=' + bloc.lieu" target="_blank">{{ bloc.lieu }}</a></span>
 									<span class="lieu" v-else-if="bloc.lieu !== '' && bloc.lieu.includes('http') === true"><i class="material-icons">voice_chat</i><a :href="bloc.lieu" target="_blank">{{ definirDomaine(bloc.lieu) }}</a></span>
-									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== ''">
+									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== '' || (bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui')">
 										<a class="bouton" :href="bloc.lien" target="_blank" :style="{'border-color': bloc.couleur}" v-if="bloc.lien !== ''">Ouvrir le lien</a>
-										<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" :style="{'border-color': bloc.couleur}" v-else>Télécharger le fichier</a>
+										<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" :style="{'border-color': bloc.couleur}" v-else-if="bloc.fichier !== ''">Télécharger le fichier</a>
+										<span class="bouton travaux" role="button" tabindex="0" :style="{'border-color': bloc.couleur}" v-if="bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui'" @click="ouvrirModaleDepot(bloc.id)">Déposer ou afficher un travail</span>
 									</div>
 								</div>
 							</article>
@@ -172,6 +174,7 @@
 							<template v-else-if="type === 'document' || type === 'activite' || type === 'evaluation'">
 								<label>Type de ressource</label>
 								<select @change="modifierRessource($event.target.value)">
+									<option value="-" :selected="ressource === '-'" v-if="type !== 'document'">-</option>
 									<option value="lien" :selected="ressource === 'lien'">Lien</option>
 									<option value="fichier" :selected="ressource === 'fichier'">Fichier</option>
 								</select>
@@ -179,17 +182,31 @@
 								<input id="champ-lien" type="text" placeholder="Exemples : https://ladigitale.dev/digiplay, https://ladigitale.dev/digiread" :value="lien" @input="lien = $event.target.value" v-if="type === 'document' && ressource === 'lien'">
 								<input id="champ-lien" type="text" placeholder="Exemples : https://digipad.app, https://digistorm.app, https://ladigitale.dev/digiquiz" :value="lien" @input="lien = $event.target.value" v-else-if="type !== 'document' && ressource === 'lien'">
 								<label v-if="ressource === 'fichier'">Fichier (max. 2 Mo)</label>
-								<div id="fichier">
-									<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + fichier" target="_blank" v-if="ressource === 'fichier' && mode === 'edition' && fichier !== ''">Voir le fichier actuel</a>
-									<label for="televerser" class="bouton" role="button" tabindex="0" v-if="ressource === 'fichier' && fichier === ''">Téléverser un fichier</label>
-									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="ressource === 'fichier' && mode === 'creation' && fichier !== ''">{{ fichier }}</label>
-									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="ressource === 'fichier' && mode === 'edition' && fichier !== '' && ancienFichier === fichier">Remplacer le fichier</label>
-									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="ressource === 'fichier' && mode === 'edition' && fichier !== '' && ancienFichier !== fichier">{{ fichier }}</label>
-									<input id="televerser" type="file" accept=".jpg, .jpeg, .png, .gif, .mp3, .mp4, .pdf, .doc, .docx, .odt, .ppt, .pptx, .odp, .xls, .xlsx, .ods" @change="selectionnerFichier" style="display: none;" v-if="ressource === 'fichier'">
+								<div id="fichier" v-if="ressource === 'fichier'">
+									<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + fichier" target="_blank" v-if="mode === 'edition' && fichier !== '' && ancienFichier === fichier">Voir le fichier actuel</a>
+									<label for="televerser" class="bouton" role="button" tabindex="0" v-if="fichier === ''">Sélectionner un fichier</label>
+									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="mode === 'creation' && fichier !== ''">{{ fichier }}</label>
+									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="mode === 'edition' && fichier !== '' && ancienFichier === fichier">Remplacer le fichier actuel</label>
+									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="mode === 'edition' && fichier !== '' && ancienFichier !== fichier">{{ fichier }}</label>
+									<input id="televerser" type="file" accept=".jpg, .jpeg, .png, .gif, .mp3, .mp4, .pdf, .doc, .docx, .odt, .ppt, .pptx, .odp, .xls, .xlsx, .ods" @change="selectionnerFichier" style="display: none;">
+								</div>
+							</template>
+							<template v-if="type === 'activite' || type === 'evaluation'">
+								<label>Dépôt par les apprenants (lien ou fichier)</label>
+								<div id="depot">
+									<span class="label">
+										<input type="radio" id="depot_oui" name="depot" value="oui" :checked="depot === 'oui'" @change="depot = $event.target.value">
+										<label for="depot_oui">Oui</label>
+									</span>
+									<span class="label">
+										<input type="radio" id="depot_non" name="depot" value="non" :checked="depot === 'non'" @change="depot = $event.target.value">
+										<label for="depot_non">Non</label>
+									</span>
 								</div>
 							</template>
 							<label v-if="type === 'seance'">Durée</label>
-							<label v-else>Durée estimée</label>
+							<label v-else-if="type === 'document'">Durée estimée de consultation</label>
+							<label v-else>Durée estimée de réalisation</label>
 							<div id="duree">
 								<select @change="heures = parseInt($event.target.value)">
 									<option value="0" :selected="heures === 0">0</option>
@@ -224,7 +241,7 @@
 							</div>
 						</div>
 						<label v-if="type !== '-' && type !== 'section'">Vignette</label>
-						<select class="vignette" @change="modifierVignette($event.target.value)" v-if="type === 'seance'">
+						<select id="vignette" @change="modifierVignette($event.target.value)" v-if="type === 'seance'">
 							<option value="icone_meeting_room" :selected="vignette === 'icone_meeting_room'">Icône classe</option>
 							<option value="icone_devices" :selected="vignette === 'icone_devices'">Icône visioconférence</option>
 							<option value="jitsi" :selected="vignette === 'jitsi'">Jitsi Meet</option>
@@ -232,7 +249,7 @@
 							<option value="zoom" :selected="vignette === 'zoom'">Zoom</option>
 							<option value="meet" :selected="vignette === 'meet'">Google Meet</option>
 						</select>
-						<select class="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'document'">
+						<select id="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'document'">
 							<option value="icone_article" :selected="vignette === 'icone_article'">Icône document</option>
 							<option value="icone_cloud_download" :selected="vignette === 'icone_cloud_download'">Icône nuage</option>
 							<option value="icone_explore" :selected="vignette === 'icone_explore'">Icône explorer</option>
@@ -253,7 +270,7 @@
 							<option value="youtube" :selected="vignette === 'youtube'">Youtube</option>
 							<option value="vimeo" :selected="vignette === 'vimeo'">Vimeo</option>
 						</select>
-						<select class="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'activite'">
+						<select id="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'activite'">
 							<option value="icone_check_circle" :selected="vignette === 'icone_check_circle'">Icône activité</option>
 							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="h5p" :selected="vignette === 'h5p'">H5P</option>
@@ -262,7 +279,7 @@
 							<option value="flipgrid" :selected="vignette === 'flipgrid'">Flipgrid</option>
 							<option value="genially" :selected="vignette === 'genially'">Genially</option>
 						</select>
-						<select class="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'evaluation'">
+						<select id="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'evaluation'">
 							<option value="icone_assessment" :selected="vignette === 'icone_assessment'">Icône évaluation</option>
 							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="h5p" :selected="vignette === 'h5p'">H5P</option>
@@ -271,12 +288,12 @@
 							<option value="flipgrid" :selected="vignette === 'flipgrid'">Flipgrid</option>
 							<option value="genially" :selected="vignette === 'genially'">Genially</option>
 						</select>
-						<div class="apercu" v-if="type !== '-' && type !== 'section'">
+						<div id="apercu" v-if="type !== '-' && type !== 'section'">
 							<i class="material-icons" v-if="vignette.substring(0, 5) === 'icone'">{{ vignette.substring(6) }}</i>
 							<img :src="definirRacine() + 'static/vignettes/' + vignette + '.png'" v-else>
 						</div>
 						<label>Couleur</label>
-						<div class="couleurs">
+						<div id="couleurs">
 							<span v-for="(item, index) in couleurs" :class="{'selectionne': item === couleur}" :style="{'background': item}" @click="selectionnerCouleur(item)" :key="'couleur_' + index" />
 							<span class="icone">
 								<label for="couleur"><i class="material-icons">colorize</i></label>
@@ -286,8 +303,8 @@
 						</div>
 					</div>
 				</div>
-				<div class="valider" role="button" tabindex="0" @click="ajouterBloc" v-if="mode === 'creation'">Valider</div>
-				<div class="valider" role="button" tabindex="0" @click="modifierBloc" v-else>Modifier</div>
+				<div id="valider" role="button" tabindex="0" @click="ajouterBloc" v-if="mode === 'creation'">Valider</div>
+				<div id="valider" role="button" tabindex="0" @click="modifierBloc" v-else>Modifier</div>
 			</div>
 		</div>
 
@@ -318,6 +335,96 @@
 						</div>
 					</div>
 				</div>
+			</div>
+		</div>
+
+		<div class="conteneur-modale" v-else-if="modale === 'travaux'">
+			<div id="travaux" class="modale">
+				<header>
+					<span class="titre">Afficher les travaux</span>
+					<span class="fermer" role="button" tabindex="0" @click="fermerModaleTravaux"><i class="material-icons">close</i></span>
+				</header>
+				<div class="conteneur">
+					<div class="contenu">
+						<div class="travail" v-for="(travail, indexTravail) in travaux" :key="'travail_' + indexTravail">
+							<span class="meta">par <b>{{ travail.pseudo }}</b> {{ definirDateEtHeure(travail.date) }} (mot de passe&nbsp;: {{ travail.motdepasse }})</span>
+							<a class="bouton" :href="travail.lien" target="_blank" v-if="travail.lien !== ''">Ouvrir le lien</a>
+							<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + travail.fichier" target="_blank" v-else-if="travail.fichier !== ''">Télécharger le fichier</a>
+						</div>
+					</div>
+				</div>
+				<div id="valider" role="button" tabindex="0" @click="deposer" v-if="mode === 'deposer' || mode === 'afficher'">Valider</div>
+				<div id="valider" role="button" tabindex="0" @click="verifier" v-else-if="mode === 'verifier'">Valider</div>
+			</div>
+		</div>
+
+		<div class="conteneur-modale" v-else-if="modale === 'depot'">
+			<div id="travail" class="modale" :class="{'deposer': mode === 'deposer' || mode === 'afficher', 'verifier': mode === 'verifier'}">
+				<header>
+					<span class="titre" v-if="mode === 'deposer'">Déposer un travail</span>
+					<span class="titre" v-else-if="mode === 'verifier' || mode === 'afficher'">Consulter un travail</span>
+					<span class="titre" v-else>Déposer ou consulter un travail</span>
+					<span class="fermer" role="button" tabindex="0" @click="fermerModaleDepot"><i class="material-icons">close</i></span>
+				</header>
+				<div class="conteneur">
+					<div class="contenu">
+						<label v-if="mode === '' || mode === '-'">Je veux...</label>
+						<select @change="modifierModeDepot($event.target.value)" v-if="mode === '' || mode === '-'">
+							<option value="-">-</option>
+							<option value="deposer">déposer un travail.</option>
+							<option value="verifier">consulter un travail.</option>
+						</select>
+						<template v-if="mode === 'deposer'">
+							<label>Nom ou pseudo</label>
+							<input type="text" :value="pseudo" placeholder="Nom ou pseudo"  @input="pseudo = $event.target.value">
+							<label>Mot de passe (<u>à noter</u> pour modifier le dépôt ou consulter le retour de l'enseignant)</label>
+							<input type="text" :value="motdepasse" disabled>
+							<label>Type de dépôt</label>
+							<select @change="modifierRessourceDepot($event.target.value)">
+								<option value="lien" :selected="ressource === 'lien'">Lien</option>
+								<option value="fichier" :selected="ressource === 'fichier'">Fichier</option>
+							</select>
+							<label for="champ-lien" v-if="ressource === 'lien'">Lien</label>
+							<input id="champ-lien" type="text" :value="lien" placeholder="https://..." @input="lien = $event.target.value" v-if="ressource === 'lien'">
+							<label v-if="ressource === 'fichier'">Fichier (max. 2 Mo)</label>
+							<div id="fichier" v-if="ressource === 'fichier'">
+								<label for="televerser" class="bouton" role="button" tabindex="0" v-if="fichier === ''">Sélectionner un fichier</label>
+								<label for="televerser" class="bouton" role="button" tabindex="0" v-else>{{ fichier }}</label>
+								<input id="televerser" type="file" accept=".jpg, .jpeg, .png, .gif, .mp3, .mp4, .pdf, .doc, .docx, .odt, .ppt, .pptx, .odp, .xls, .xlsx, .ods" @change="selectionnerFichier" style="display: none;">
+							</div>
+						</template>
+						<template v-else-if="mode === 'verifier'">
+							<label>Mot de passe</label>
+							<input type="text" :value="motdepasse" @input="motdepasse = $event.target.value" @keydown.enter="verifier">
+						</template>
+						<template v-else-if="mode === 'afficher'">
+							<label>Nom ou pseudo</label>
+							<input type="text" :value="pseudo" placeholder="Nom ou pseudo"  @input="pseudo = $event.target.value">
+							<label>Mot de passe</label>
+							<input type="text" :value="motdepasse" disabled>
+							<label>Type de dépôt</label>
+							<select @change="modifierRessourceDepot($event.target.value)">
+								<option value="lien" :selected="ressource === 'lien'">Lien</option>
+								<option value="fichier" :selected="ressource === 'fichier'">Fichier</option>
+							</select>
+							<label for="champ-lien" v-if="ressource === 'lien'">Lien</label>
+							<input id="champ-lien" type="text" :value="lien" placeholder="https://..." @input="lien = $event.target.value" v-if="ressource === 'lien'">
+							<label v-if="ressource === 'fichier'">Fichier (max. 2 Mo)</label>
+							<div id="fichier" v-if="ressource === 'fichier'">
+								<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + fichier" target="_blank" v-if="fichier !== '' && ancienFichier === fichier">Voir le fichier actuel</a>
+								<label for="televerser" class="bouton" role="button" tabindex="0" v-if="fichier === ''">Sélectionner un fichier</label>
+								<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="fichier !== '' && ancienFichier === fichier">Remplacer le fichier actuel</label>
+								<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="fichier !== '' && ancienFichier !== fichier">{{ fichier }}</label>
+								<input id="televerser" type="file" accept=".jpg, .jpeg, .png, .gif, .mp3, .mp4, .pdf, .doc, .docx, .odt, .ppt, .pptx, .odp, .xls, .xlsx, .ods" @change="selectionnerFichier" style="display: none;">
+							</div>
+							<label>Rétroaction</label>
+							<div id="retroaction" v-if="retroaction !== ''" v-html="retroaction" />
+							<div id="retroaction" v-else>Aucune rétroaction.</div>
+						</template>
+					</div>
+				</div>
+				<div id="valider" role="button" tabindex="0" @click="deposer" v-if="mode === 'deposer' || mode === 'afficher'">Valider</div>
+				<div id="valider" role="button" tabindex="0" @click="verifier" v-else-if="mode === 'verifier'">Valider</div>
 			</div>
 		</div>
 
@@ -471,10 +578,15 @@ export default {
 			debut: '',
 			fin: '',
 			lieu: '',
-			ressource: 'lien',
+			ressource: '-',
 			lien: '',
 			fichier: '',
 			ancienFichier: '',
+			depot: 'non',
+			travaux: [],
+			retroaction: '',
+			pseudo: '',
+			motdepasse: '',
 			vignette: '',
 			heures: 0,
 			minutes: 0,
@@ -619,6 +731,9 @@ export default {
 		definirHoraire (date, debut, fin) {
 			return 'de ' + moment(new Date(date + ' ' + debut)).locale('fr').format('LT') + ' à ' + moment(new Date(date + ' ' + fin)).locale('fr').format('LT') 
 		},
+		definirDateEtHeure (date) {
+			return 'le ' + moment(new Date(date)).locale('fr').format('L') + ' à ' + moment(new Date(date)).locale('fr').format('LT')
+		},
 		definirDomaine (url) {
 			return (new URL(url)).hostname
 		},
@@ -649,6 +764,12 @@ export default {
 					this.ressource = 'lien'
 				} else if (this.fichier !== '') {
 					this.ressource = 'fichier'
+				}
+				if (item.hasOwnProperty('depot') === true) {
+					this.depot = item.depot
+				}
+				if (item.hasOwnProperty('travaux') === true) {
+					this.travaux = item.travaux
 				}
 				this.vignette = item.vignette
 				this.heures = item.heures
@@ -711,17 +832,19 @@ export default {
 				this.debut = ''
 				this.fin = ''
 				this.lieu = ''
-				this.ressource = 'lien'
+				this.ressource = '-'
 				this.lien = ''
 				this.fichier = ''
+				this.depot = 'non'
 				this.heures = 0
 				this.minutes = 0
 				this.vignette = ''
 				break
 			case 'seance':
-				this.ressource = 'lien'
+				this.ressource = '-'
 				this.lien = ''
 				this.fichier = ''
+				this.depot = 'non'
 				this.vignette = 'icone_meeting_room'
 				break
 			case 'document':
@@ -729,6 +852,8 @@ export default {
 				this.debut = ''
 				this.fin = ''
 				this.lieu = ''
+				this.ressource = 'lien'
+				this.depot = 'non'
 				this.vignette = 'icone_article'
 				break
 			case 'activite':
@@ -783,17 +908,15 @@ export default {
 					this.$parent.$parent.message = 'Veuillez indiquer une adresse ou un lien de visioconférence.'
 				}
 				return false
-			} else if ((this.type === 'document' || this.type === 'activite' || this.type === 'evaluation') && (this.lien === '' && this.fichier === '')) {
+			} else if ((this.type === 'document' || this.type === 'activite' || this.type === 'evaluation') && (this.ressource === 'lien' && this.lien !== '' && this.verifierLien(this.lien) === false)) {
+				this.$parent.$parent.message = 'Veuillez indiquer un lien valide.'
+				return false
+			} else if ((this.type === 'document' || this.type === 'activite' || this.type === 'evaluation') && (this.ressource !== '-' && this.lien === '' && this.fichier === '')) {
 				if (this.ressource === 'lien' && this.lien === '') {
 					this.$parent.$parent.message = 'Veuillez indiquer un lien.'
 				} else if (this.ressource === 'fichier' && this.fichier === '') {
 					this.$parent.$parent.message = 'Veuillez sélectionner un fichier.'
-				} else if (this.ressource === 'lien' && this.lien !== '' && this.verifierLien(this.lien) === false) {
-					this.$parent.$parent.message = 'Veuillez indiquer un lien valide.'
 				}
-				return false
-			} else if (this.type !== 'section' && this.heures === 0 && this.minutes === 0) {
-				this.$parent.$parent.message = 'Veuillez indiquer une durée.'
 				return false
 			}
 			return true
@@ -858,7 +981,7 @@ export default {
 			}
 			const id = 'etape-' + (new Date()).getTime() + Math.random().toString(16).slice(10)
 			const blocs = JSON.parse(JSON.stringify(this.blocs))
-			const bloc = { id: id, titre: this.titre, texte: this.texte, type: this.type, date: this.date, debut: this.debut, fin: this.fin, lieu: this.lieu, lien: this.lien, fichier: this.fichier, vignette: this.vignette, heures: this.heures, minutes: this.minutes, couleur: this.couleur, visibilite: true }
+			const bloc = { id: id, titre: this.titre, texte: this.texte, type: this.type, date: this.date, debut: this.debut, fin: this.fin, lieu: this.lieu, lien: this.lien, fichier: this.fichier, depot: this.depot, travaux: this.travaux, vignette: this.vignette, heures: this.heures, minutes: this.minutes, couleur: this.couleur, visibilite: true }
 			blocs.push(bloc)
 			const xhr = new XMLHttpRequest()
 			xhr.onload = function () {
@@ -874,14 +997,14 @@ export default {
 						this.$parent.$parent.notification = 'Étape ajoutée.'
 						this.$nextTick(function () {
 							const texte = document.querySelector('#' + id + ' .texte')
-							if (texte.scrollHeight > texte.clientHeight) {
+							if (texte && texte.scrollHeight > texte.clientHeight) {
 								const span = document.createElement('span')
 								span.classList.add('lire')
 								span.textContent = 'Lire la suite'
 								texte.insertAdjacentElement('afterend', span)
 							}
-							if (document.querySelector('#' + id + ' .lire')) {
-								const balise = document.querySelector('#' + id + ' .lire')
+							const balise = document.querySelector('#' + id + ' .lire')
+							if (balise) {
 								balise.addEventListener('click', function () {
 									if (texte.style.display === 'block') {
 										texte.style.display = '-webkit-box'
@@ -901,8 +1024,9 @@ export default {
 				}
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
-			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-			xhr.send('parcours=' + this.id + '&donnees=' + JSON.stringify({ blocs: blocs }) + '&session=' + session)
+			xhr.setRequestHeader('Content-type', 'application/json')
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session }
+			xhr.send(JSON.stringify(json))
 		},
 		async modifierBloc () {
 			if (this.verifierBloc() === false) {
@@ -914,6 +1038,10 @@ export default {
 					return false
 				}
 			}
+			let fichier = ''
+			if (this.lien !== '' && this.ancienFichier !== '') {
+				fichier = this.ancienFichier
+			}
 			this.$parent.$parent.chargement = true
 			let session = ''
 			if (localStorage.getItem('session')) {
@@ -922,7 +1050,7 @@ export default {
 			const blocs = JSON.parse(JSON.stringify(this.blocs))
 			blocs.forEach(function (bloc, index) {
 				if (bloc.id === this.bloc) {
-					blocs.splice(index, 1, { id: bloc.id, titre: this.titre, texte: this.texte, type: this.type, date: this.date, debut: this.debut, fin: this.fin, lieu: this.lieu, lien: this.lien, fichier: this.fichier, vignette: this.vignette, heures: this.heures, minutes: this.minutes, couleur: this.couleur, visibilite: bloc.visibilite })
+					blocs.splice(index, 1, { id: bloc.id, titre: this.titre, texte: this.texte, type: this.type, date: this.date, debut: this.debut, fin: this.fin, lieu: this.lieu, lien: this.lien, fichier: this.fichier, depot: this.depot, travaux: this.travaux, vignette: this.vignette, heures: this.heures, minutes: this.minutes, couleur: this.couleur, visibilite: bloc.visibilite })
 				}
 			}.bind(this))
 			const xhr = new XMLHttpRequest()
@@ -939,17 +1067,17 @@ export default {
 						this.$parent.$parent.notification = 'Étape modifiée.'
 						this.$nextTick(function () {
 							const texte = document.querySelector('#' + this.bloc + ' .texte')
-							if (texte.scrollHeight > texte.clientHeight && !document.querySelector('#' + this.bloc + ' .lire')) {
+							const balise = document.querySelector('#' + this.bloc + ' .lire')
+							if (texte && texte.scrollHeight > texte.clientHeight && !balise) {
 								const span = document.createElement('span')
 								span.classList.add('lire')
 								span.textContent = 'Lire la suite'
 								texte.insertAdjacentElement('afterend', span)
 							}
-							if (texte.scrollHeight === texte.clientHeight && document.querySelector('#' + this.bloc + ' .lire')) {
-								document.querySelector('#' + this.bloc + ' .lire').parentNode.removeChild(document.querySelector('#' + this.bloc + ' .lire'))
+							if (texte && texte.scrollHeight === texte.clientHeight && balise) {
+								balise.parentNode.removeChild(balise)
 							}
-							if (document.querySelector('#' + this.bloc + ' .lire')) {
-								const balise = document.querySelector('#' + this.bloc + ' .lire')
+							if (balise) {
 								balise.addEventListener('click', function () {
 									if (texte.style.display === 'block') {
 										texte.style.display = '-webkit-box'
@@ -969,8 +1097,9 @@ export default {
 				}
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
-			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-			xhr.send('parcours=' + this.id + '&donnees=' + JSON.stringify({ blocs: blocs }) + '&session=' + session)
+			xhr.setRequestHeader('Content-type', 'application/json')
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session, fichier: fichier }
+			xhr.send(JSON.stringify(json))
 		},
 		fermerModaleContenu () {
 			this.modale = ''
@@ -982,10 +1111,12 @@ export default {
 			this.debut = ''
 			this.fin = ''
 			this.lieu = ''
-			this.ressource = 'lien'
+			this.ressource = '-'
 			this.lien = ''
 			this.fichier = ''
 			this.ancienFichier = ''
+			this.depot = 'non'
+			this.travaux = []
 			this.vignette = ''
 			this.heures = 0
 			this.minutes = 0
@@ -1012,8 +1143,9 @@ export default {
 					}
 				}.bind(this)
 				xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
-				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-				xhr.send('parcours=' + this.id + '&donnees=' + JSON.stringify({ blocs: this.blocs }) + '&session=' + session)
+				xhr.setRequestHeader('Content-type', 'application/json')
+				const json = { parcours: this.id, donnees: JSON.stringify({ blocs: this.blocs }), session: session }
+				xhr.send(JSON.stringify(json))
 			}
 		},
 		modifierVisibiliteBloc (id) {
@@ -1046,8 +1178,9 @@ export default {
 				}
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
-			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-			xhr.send('parcours=' + this.id + '&donnees=' + JSON.stringify({ blocs: blocs }) + '&session=' + session)
+			xhr.setRequestHeader('Content-type', 'application/json')
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session }
+			xhr.send(JSON.stringify(json))
 		},
 		afficherSupprimerBloc (id) {
 			this.bloc = id
@@ -1088,8 +1221,154 @@ export default {
 				}
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
-			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-			xhr.send('parcours=' + this.id + '&donnees=' + JSON.stringify({ blocs: blocs }) + '&session=' + session + '&fichier=' + fichier)
+			xhr.setRequestHeader('Content-type', 'application/json')
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session, fichier: fichier }
+			xhr.send(JSON.stringify(json))
+		},
+		ouvrirModaleTravaux (bloc) {
+			this.bloc = bloc.id
+			this.travaux = bloc.travaux
+			this.modale = 'travaux'
+		},
+		evaluer () {
+			//
+		},
+		fermerModaleTravaux () {
+			this.modale = ''
+			this.bloc = ''
+			this.travaux = []
+		},
+		ouvrirModaleDepot (id) {
+			this.bloc = id
+			this.mode = '-'
+			this.modale = 'depot'
+		},
+		modifierModeDepot (mode) {
+			this.mode = mode
+			if (mode === 'deposer') {
+				this.ressource = 'lien'
+				this.motdepasse = Math.floor(1000 + Math.random() * 9000)
+			} else {
+				this.ressource = '-'
+				this.motdepasse = ''
+			}
+		},
+		modifierRessourceDepot (ressource) {
+			this.ressource = ressource
+			this.lien = ''
+			this.fichier = ''
+		},
+		async deposer () {
+			if (this.pseudo === '') {
+				this.$parent.$parent.message = 'Veuillez indiquer un nom ou un pseudo.'
+				return false
+			} else if (this.ressource === 'lien' && this.lien !== '' && this.verifierLien(this.lien) === false) {
+				this.$parent.$parent.message = 'Veuillez indiquer un lien valide.'
+				return false
+			} else if (this.lien === '' && this.fichier === '') {
+				if (this.ressource === 'lien' && this.lien === '') {
+					this.$parent.$parent.message = 'Veuillez indiquer un lien.'
+				} else if (this.ressource === 'fichier' && this.fichier === '') {
+					this.$parent.$parent.message = 'Veuillez sélectionner un fichier.'
+				}
+				return false
+			}
+			if (this.ressource === 'fichier' && this.fichier !== '') {
+				this.fichier = await this.televerserFichier()
+				if (this.fichier === 'erreur') {
+					return false
+				}
+			}
+			let fichier = ''
+			if (this.lien !== '' && this.ancienFichier !== '') {
+				fichier = this.ancienFichier
+			}
+			const blocs = JSON.parse(JSON.stringify(this.blocs))
+			if (this.mode === 'deposer') {
+				blocs.forEach(function (bloc) {
+					if (bloc.id === this.bloc) {
+						bloc.travaux.push({ motdepasse: this.motdepasse, pseudo: this.pseudo, lien: this.lien, fichier: this.fichier, retroaction: '', date: moment().format() })
+					}
+				}.bind(this))
+			} else if (this.mode === 'afficher') {
+				blocs.forEach(function (bloc) {
+					if (bloc.id === this.bloc) {
+						bloc.travaux.forEach(function (travail) {
+							if (parseInt(travail.motdepasse) === parseInt(this.motdepasse)) {
+								travail.pseudo = this.pseudo
+								travail.lien = this.lien
+								travail.fichier = this.fichier
+								travail.date = moment().format()
+							}
+						}.bind(this))
+					}
+				}.bind(this))
+			}
+			this.$parent.$parent.chargement = true
+			const xhr = new XMLHttpRequest()
+			xhr.onload = function () {
+				if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+					this.$parent.$parent.chargement = false
+					this.fermerModaleDepot()
+					if (xhr.responseText === 'erreur') {
+						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+					} else if (xhr.responseText === 'travail_depose') {
+						this.blocs = blocs
+						this.$parent.$parent.notification = 'Travail déposé.'
+					}
+				} else {
+					this.$parent.$parent.chargement = false
+					this.fermerModaleDepot()
+					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+				}
+			}.bind(this)
+			xhr.open('POST', this.$parent.$parent.hote + '/inc/deposer_travail.php', true)
+			xhr.setRequestHeader('Content-type', 'application/json')
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), fichier: fichier }
+			xhr.send(JSON.stringify(json))
+		},
+		verifier () {
+			if (this.motdepasse === '') {
+				this.$parent.$parent.message = 'Veuillez indiquer un mot de passe.'
+				return false
+			}
+			this.blocs.forEach(function (item) {
+				if (item.id === this.bloc) {
+					const travaux = item.travaux
+					let motdepasseExiste = false
+					travaux.forEach(function (travail) {
+						if (parseInt(travail.motdepasse) === parseInt(this.motdepasse)) {
+							this.mode = 'afficher'
+							this.pseudo = travail.pseudo
+							this.lien = travail.lien
+							this.fichier = travail.fichier
+							this.ancienFichier = travail.fichier
+							if (this.lien !== '') {
+								this.ressource = 'lien'
+							} else if (this.fichier !== '') {
+								this.ressource = 'fichier'
+							}
+							this.retroaction = travail.retroaction
+							motdepasseExiste = true
+						}
+					}.bind(this))
+					if (motdepasseExiste === false) {
+						this.$parent.$parent.message = 'Ce mot de passe n\'existe pas.'
+					}
+				}
+			}.bind(this))
+		},
+		fermerModaleDepot () {
+			this.bloc = ''
+			this.pseudo = ''
+			this.motdepasse = ''
+			this.lien = ''
+			this.fichier = ''
+			this.ancienFichier = ''
+			this.mode = ''
+			this.ressource = '-'
+			this.retroaction = ''
+			this.modale = ''
 		},
 		ouvrirModaleParcours () {
 			this.modale = 'parcours'
@@ -1453,6 +1732,7 @@ section {
 	border-radius: 7px;
 	padding: 15px;
 	margin-top: 15px;
+	width: 100%;
 }
 
 #blocs .bloc.section {
@@ -1460,6 +1740,7 @@ section {
 	align-items: center;
 	padding: 0;
 	margin-top: 30px;
+	width: 100%;
 }
 
 #blocs.admin .bloc {
@@ -1480,7 +1761,7 @@ section {
 }
 
 #blocs .bloc:not(.section) .contenu {
-	width: 100%;
+	width: calc(100% - 203px);
 }
 
 #blocs .bloc.section .contenu {
@@ -1628,9 +1909,21 @@ section {
 	text-overflow: ellipsis;
 }
 
+#blocs .bloc .action .bouton + .bouton {
+	margin-left: 15px;
+}
+
 #blocs .bloc .action .bouton:hover {
 	background: rgba(255, 255, 255, 0.75);
 	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+#blocs .bloc .action .bouton.travaux {
+	border-color: #001d1d!important;
+}
+
+#blocs .bloc .action .bouton.travaux:hover {
+	background: #eee!important;
 }
 
 #blocs .bloc .actions {
@@ -1756,16 +2049,53 @@ section {
 	border-top: 1px solid #ddd;
 }
 
+#travaux {
+	max-width: 750px;
+}
+
+#travaux .travail {
+	display: inline-block;
+	width: 100%;
+	padding: 10px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	margin-bottom: 15px;
+}
+
+#travaux .travail .meta {
+	display: block;
+	padding-bottom: 10px;
+	margin-bottom: 10px;
+	border-bottom: 1px dashed #ddd;
+}
+
+#travaux .travail .bouton {
+	font-size: 11px;
+	height: 30px;
+	line-height: 30px;
+}
+
+#travail.deposer,
 #bloc {
 	height: 90%;
 	max-width: 750px;
 }
 
+#travail.verifier {
+	height: 202px;
+}
+
+#travail {
+	max-width: 750px;
+}
+
+#travail .conteneur,
 #bloc .conteneur {
 	height: calc(100% - 95px);
 	padding: 0 20px 20px;
 }
 
+#travail .contenu,
 #bloc .contenu {
 	margin-top: 20px;
 }
@@ -1816,25 +2146,112 @@ section {
 	margin-left: 20px;
 }
 
-#bloc .vignette {
+#depot {
+	display: flex;
+	margin-bottom: 20px;
+}
+
+#depot .label {
+	display: flex;
+}
+
+#depot .label:first-child {
+	margin-right: 20px;
+}
+
+#depot .label input {
+	margin-right: 7px;
+}
+
+#depot .label label {
+	margin-bottom: 0;
+}
+
+#vignette {
 	margin-bottom: 5px;
 }
 
-#bloc .apercu {
+#apercu {
 	display: block;
 	margin-bottom: 20px;
 	font-size: 0;
 }
 
-#bloc .apercu i {
+#apercu i {
 	font-size: 48px;
 }
 
-#bloc .apercu img {
+#apercu img {
 	max-width: 70px;
 }
 
-#bloc .valider {
+#couleurs {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	margin-bottom: 20px;
+	overflow: auto;
+}
+
+#couleurs span {
+	display: block;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	margin-right: 10px;
+	cursor: pointer;
+	flex: 0 0 auto;
+}
+
+#couleurs span.icone {
+	display: flex;
+	width: 62px;
+	height: 30px;
+}
+
+#couleurs span.icone label {
+	font-size: 24px;
+	width: 24px;
+	margin-right: 8px;
+	margin-bottom: 0;
+	line-height: 30px;
+}
+
+#couleurs span input[type="color"] {
+	width: 30px;
+	height: 30px;
+	padding: 0;
+	border: none;
+	cursor: pointer;
+}
+
+#couleurs span input[type="color"]::-moz-color-swatch {
+	border: none;
+	border-radius: 50%;
+}
+
+#couleurs span input[type="color"]::-webkit-color-swatch {
+	border: none;
+	border-radius: 50%;
+}
+
+#couleurs span input[type="color"].selectionne::-moz-color-swatch {
+	border: 2px solid #000;
+}
+
+#couleurs span input[type="color"].selectionne::-webkit-color-swatch {
+	border: 2px solid #000;
+}
+
+#couleurs span.selectionne {
+	border: 2px solid #000;
+}
+
+#travail .contenu input:last-child {
+	margin-bottom: 0;
+}
+
+#valider {
 	position: absolute;
 	display: flex;
 	justify-content: center;
@@ -1858,7 +2275,7 @@ section {
 	border-bottom-right-radius: 10px;
 }
 
-#bloc .valider:hover {
+#valider:hover {
 	background: #394b62;
 }
 
@@ -1953,6 +2370,10 @@ section {
 		flex-wrap: wrap;
 	}
 
+	#blocs .bloc:not(.section) .contenu {
+		width: calc(100% - 109px)!important;
+	}
+
 	#blocs .bloc .date,
 	#blocs .bloc .horaire {
 		width: 100%!important;
@@ -1992,8 +2413,19 @@ section {
 		font-size: 15px!important;
 	}
 
+	#blocs .bloc .action .bouton + .bouton {
+		margin-top: 10px!important;
+		margin-left: 0!important;
+	}
+
 	#blocs .bloc .action .bouton {
-		font-size: 12px;
+		font-size: 12px!important;
+		width: 100%!important;
+		text-align: center!important;
+	}
+
+	#blocs .bloc .action {
+		flex-wrap: wrap!important;;
 	}
 }
 
