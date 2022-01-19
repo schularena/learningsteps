@@ -111,7 +111,7 @@
 									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== '' || (bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui')">
 										<a class="bouton" :href="bloc.lien" target="_blank" :style="{'border-color': bloc.couleur}" v-if="bloc.lien !== ''">Ouvrir le lien</a>
 										<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" :style="{'border-color': bloc.couleur}" v-else-if="bloc.fichier !== ''">Télécharger le fichier</a>
-										<span class="bouton travaux" role="button" tabindex="0" :style="{'border-color': bloc.couleur}" v-if="bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui'" @click="ouvrirModaleDepot(bloc.id)">Déposer ou afficher un travail</span>
+										<span class="bouton travaux" role="button" tabindex="0" :style="{'border-color': bloc.couleur}" v-if="bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui'" @click="ouvrirModaleDepot(bloc.id)">Déposer ou consulter un travail</span>
 									</div>
 								</div>
 							</article>
@@ -274,6 +274,8 @@
 							<option value="icone_check_circle" :selected="vignette === 'icone_check_circle'">Icône activité</option>
 							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="h5p" :selected="vignette === 'h5p'">H5P</option>
+							<option value="snacks" :selected="vignette === 'snacks'">Learning Snacks</option>
+							<option value="quiziniere" :selected="vignette === 'quiziniere'">QuiZinière</option>
 							<option value="vocaroo" :selected="vignette === 'vocaroo'">Vocaroo</option>
 							<option value="quizlet" :selected="vignette === 'quizlet'">Quizlet</option>
 							<option value="flipgrid" :selected="vignette === 'flipgrid'">Flipgrid</option>
@@ -283,6 +285,8 @@
 							<option value="icone_assessment" :selected="vignette === 'icone_assessment'">Icône évaluation</option>
 							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="h5p" :selected="vignette === 'h5p'">H5P</option>
+							<option value="snacks" :selected="vignette === 'snacks'">Learning Snacks</option>
+							<option value="quiziniere" :selected="vignette === 'quiziniere'">QuiZinière</option>
 							<option value="vocaroo" :selected="vignette === 'vocaroo'">Vocaroo</option>
 							<option value="quizlet" :selected="vignette === 'quizlet'">Quizlet</option>
 							<option value="flipgrid" :selected="vignette === 'flipgrid'">Flipgrid</option>
@@ -346,10 +350,21 @@
 				</header>
 				<div class="conteneur">
 					<div class="contenu">
-						<div class="travail" v-for="(travail, indexTravail) in travaux" :key="'travail_' + indexTravail">
-							<span class="meta">par <b>{{ travail.pseudo }}</b> {{ definirDateEtHeure(travail.date) }} (mot de passe&nbsp;: {{ travail.motdepasse }})</span>
-							<a class="bouton" :href="travail.lien" target="_blank" v-if="travail.lien !== ''">Ouvrir le lien</a>
-							<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + travail.fichier" target="_blank" v-else-if="travail.fichier !== ''">Télécharger le fichier</a>
+						<div :id="'travail' + travail.motdepasse" class="travail" v-for="(travail, indexTravail) in travaux" :key="'travail_' + indexTravail">
+							<span class="meta">par <b>{{ travail.pseudo }}</b> {{ definirDateEtHeure(travail.date) }} <span class="motdepasse">(mot de passe&nbsp;: {{ travail.motdepasse }})</span></span>
+							<div class="boutons">
+								<a class="bouton" :href="travail.lien" target="_blank" v-if="travail.lien !== ''">Ouvrir le lien</a>
+								<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + travail.fichier" target="_blank" v-else-if="travail.fichier !== ''">Télécharger le fichier</a>
+								<span class="bouton" role="button" tabindex="0" @click="afficherRetroaction(travail.motdepasse, travail.retroaction)" v-if="parseInt(travail.motdepasse) !== parseInt(motdepasse) && travail.retroaction === ''">Commenter</span>
+								<span class="bouton" role="button" tabindex="0" @click="afficherRetroaction(travail.motdepasse, travail.retroaction)" v-else-if="parseInt(travail.motdepasse) !== parseInt(motdepasse) && travail.retroaction !== ''">Modifier le commentaire</span>
+							</div>
+							<div class="retroaction" v-if="parseInt(travail.motdepasse) === parseInt(motdepasse)">
+								<div id="retroaction" />
+								<div class="boutons">
+									<span class="bouton" role="button" tabindex="0" @click="annulerRetroaction">Annuler</span>
+									<span class="bouton" role="button" tabindex="0" @click="enregistrerRetroaction">Enregistrer</span>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -395,7 +410,7 @@
 						</template>
 						<template v-else-if="mode === 'verifier'">
 							<label>Mot de passe</label>
-							<input type="text" :value="motdepasse" @input="motdepasse = $event.target.value" @keydown.enter="verifier">
+							<input type="text" :value="motdepasse" placeholder="6 chiffres" @input="motdepasse = $event.target.value" @keydown.enter="verifier">
 						</template>
 						<template v-else-if="mode === 'afficher'">
 							<label>Nom ou pseudo</label>
@@ -616,13 +631,12 @@ export default {
 		const xhr = new XMLHttpRequest()
 		xhr.onload = function () {
 			if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+				let reponse
 				try {
-					JSON.parse(xhr.responseText)
-				}
-				catch (_) {
+					reponse = JSON.parse(xhr.responseText)
+				} catch (_) {
 					this.$router.push('/')
 				}
-				const reponse = JSON.parse(xhr.responseText)
 				if (!reponse.nom || reponse.nom === '') {
 					this.$router.push('/')
 				} else {
@@ -884,6 +898,10 @@ export default {
 			pell.exec('foreColor', event.target.value)
 			document.querySelector('#texte .bouton-editeur label[for="couleur-texte"]').style.color = event.target.value
 		},
+		modifierCouleurRetroaction (event) {
+			pell.exec('foreColor', event.target.value)
+			document.querySelector('#retroaction .bouton-editeur label[for="couleur-retroaction"]').style.color = event.target.value
+		},
 		selectionnerFichier (event) {
 			this.fichier = event.target.files[0].name
 		},
@@ -1038,9 +1056,9 @@ export default {
 					return false
 				}
 			}
-			let fichier = ''
+			const fichiers = []
 			if (this.lien !== '' && this.ancienFichier !== '') {
-				fichier = this.ancienFichier
+				fichiers.push(this.ancienFichier)
 			}
 			this.$parent.$parent.chargement = true
 			let session = ''
@@ -1098,7 +1116,7 @@ export default {
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session, fichier: fichier }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session, fichiers: JSON.stringify(fichiers) }
 			xhr.send(JSON.stringify(json))
 		},
 		fermerModaleContenu () {
@@ -1194,11 +1212,18 @@ export default {
 				session = localStorage.getItem('session')
 			}
 			const blocs = JSON.parse(JSON.stringify(this.blocs))
-			let fichier = ''
+			const fichiers = []
 			blocs.forEach(function (item, index) {
 				if (item.id === this.bloc) {
 					if (item.fichier !== '') {
-						fichier = item.fichier
+						fichiers.push(item.fichier)
+					}
+					if (item.hasOwnProperty('travaux')) {
+						item.travaux.forEach(function (travail) {
+							if (travail.fichier !== '') {
+								fichiers.push(travail.fichier)
+							}
+						})
 					}
 					blocs.splice(index, 1)
 				}
@@ -1222,7 +1247,7 @@ export default {
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session, fichier: fichier }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session, fichiers: JSON.stringify(fichiers) }
 			xhr.send(JSON.stringify(json))
 		},
 		ouvrirModaleTravaux (bloc) {
@@ -1230,13 +1255,105 @@ export default {
 			this.travaux = bloc.travaux
 			this.modale = 'travaux'
 		},
-		evaluer () {
-			//
+		afficherRetroaction (motdepasse, retroaction) {
+			this.motdepasse = motdepasse
+			this.retroaction = retroaction
+			this.$nextTick(function () {
+				document.querySelector('#retroaction').innerHTML = ''
+				const editeur = pell.init({
+					element: document.querySelector('#retroaction'),
+					onChange: function (html) {
+						let texte = html.replace(/(<a [^>]*)(target="[^"]*")([^>]*>)/gi, '$1$3')
+						texte = texte.replace(/(<a [^>]*)(>)/gi, '$1 target="_blank"$2')
+						texte = linkifyHtml(texte, {
+							defaultProtocol: 'https'
+						})
+						this.retroaction = texte
+					}.bind(this),
+					actions: [
+						{ name: 'gras', title: 'Gras', icon: '<i class="material-icons">format_bold</i>', result: () => pell.exec('bold') },
+						{ name: 'italique', title: 'Italique', icon: '<i class="material-icons">format_italic</i>', result: () => pell.exec('italic') },
+						{ name: 'souligne', title: 'Souligné', icon: '<i class="material-icons">format_underlined</i>', result: () => pell.exec('underline') },
+						{ name: 'barre', title: 'Barré', icon: '<i class="material-icons">format_strikethrough</i>', result: () => pell.exec('strikethrough') },
+						{ name: 'listeordonnee', title: 'Liste ordonnée', icon: '<i class="material-icons">format_list_numbered</i>', result: () => pell.exec('insertOrderedList') },
+						{ name: 'liste', title: 'Liste', icon: '<i class="material-icons">format_list_bulleted</i>', result: () => pell.exec('insertUnorderedList') },
+						{ name: 'couleur', title: 'Couleur du texte', icon: '<label for="couleur-retroaction"><i class="material-icons">format_color_text</i></label><input id="couleur-retroaction" type="color" style="display: none;">', result: () => undefined },
+						{ name: 'lien', title: 'Lien', icon: '<i class="material-icons">link</i>', result: () => { const url = window.prompt('Adresse du lien'); if (url) { pell.exec('createLink', url) } } }
+					],
+					classes: { actionbar: 'boutons-editeur', button: 'bouton-editeur', content: 'contenu-editeur', selected: 'bouton-actif' }
+				})
+				editeur.content.innerHTML = this.retroaction
+				editeur.onpaste = function (event) {
+					event.preventDefault()
+					event.stopPropagation()
+					const texte = event.clipboardData.getData('text/plain')
+					pell.exec('insertText', texte)
+				}
+				document.querySelector('#retroaction .contenu-editeur').addEventListener('focus', function () {
+					document.querySelector('#retroaction').classList.add('focus')
+				})
+				document.querySelector('#retroaction .contenu-editeur').addEventListener('blur', function () {
+					document.querySelector('#retroaction').classList.remove('focus')
+				})
+				document.querySelector('#couleur-retroaction').addEventListener('change', this.modifierCouleurRetroaction)
+			})
+		},
+		enregistrerRetroaction () {
+			if (this.retroaction !== '') {
+				this.$parent.$parent.chargement = true
+				let session = ''
+				if (localStorage.getItem('session')) {
+					session = localStorage.getItem('session')
+				}
+				const blocs = JSON.parse(JSON.stringify(this.blocs))
+				blocs.forEach(function (bloc) {
+					if (bloc.id === this.bloc) {
+						bloc.travaux.forEach(function (travail) {
+							if (parseInt(travail.motdepasse) === parseInt(this.motdepasse)) {
+								travail.retroaction = this.retroaction
+							}
+						}.bind(this))
+					}
+				}.bind(this))
+				const travaux = JSON.parse(JSON.stringify(this.travaux))
+				travaux.forEach(function (travail) {
+					if (parseInt(travail.motdepasse) === parseInt(this.motdepasse)) {
+						travail.retroaction = this.retroaction
+					}
+				}.bind(this))
+				const xhr = new XMLHttpRequest()
+				xhr.onload = function () {
+					if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+						this.$parent.$parent.chargement = false
+						if (xhr.responseText === 'non_autorise') {
+							this.$parent.$parent.message = 'Vous n\'êtes pas autorisé à modifier ce parcours.'
+						} else if (xhr.responseText === 'parcours_modifie') {
+							this.blocs = blocs
+							this.travaux = travaux
+							this.motdepasse = ''
+							this.$parent.$parent.notification = 'Rétroaction enregistrée.'
+						}
+					} else {
+						this.$parent.$parent.chargement = false
+						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+					}
+				}.bind(this)
+				xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
+				xhr.setRequestHeader('Content-type', 'application/json')
+				const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session }
+				xhr.send(JSON.stringify(json))
+			} else {
+				this.$parent.$parent.message = 'Veuillez ajouter du texte.'
+			}
+		},
+		annulerRetroaction () {
+			this.motdepasse = ''
 		},
 		fermerModaleTravaux () {
 			this.modale = ''
 			this.bloc = ''
 			this.travaux = []
+			this.motdepasse = ''
 		},
 		ouvrirModaleDepot (id) {
 			this.bloc = id
@@ -1247,7 +1364,7 @@ export default {
 			this.mode = mode
 			if (mode === 'deposer') {
 				this.ressource = 'lien'
-				this.motdepasse = Math.floor(1000 + Math.random() * 9000)
+				this.motdepasse = Math.floor(100000 + Math.random() * 900000)
 			} else {
 				this.ressource = '-'
 				this.motdepasse = ''
@@ -1279,15 +1396,16 @@ export default {
 					return false
 				}
 			}
-			let fichier = ''
+			let fichierasupprimer = ''
 			if (this.lien !== '' && this.ancienFichier !== '') {
-				fichier = this.ancienFichier
+				fichierasupprimer = this.ancienFichier
 			}
+			const date = moment().format()
 			const blocs = JSON.parse(JSON.stringify(this.blocs))
 			if (this.mode === 'deposer') {
 				blocs.forEach(function (bloc) {
 					if (bloc.id === this.bloc) {
-						bloc.travaux.push({ motdepasse: this.motdepasse, pseudo: this.pseudo, lien: this.lien, fichier: this.fichier, retroaction: '', date: moment().format() })
+						bloc.travaux.push({ motdepasse: this.motdepasse, pseudo: this.pseudo, lien: this.lien, fichier: this.fichier, retroaction: '', date: date })
 					}
 				}.bind(this))
 			} else if (this.mode === 'afficher') {
@@ -1298,7 +1416,7 @@ export default {
 								travail.pseudo = this.pseudo
 								travail.lien = this.lien
 								travail.fichier = this.fichier
-								travail.date = moment().format()
+								travail.date = date
 							}
 						}.bind(this))
 					}
@@ -1324,8 +1442,10 @@ export default {
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + '/inc/deposer_travail.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), fichier: fichier }
+			const json = { parcours: this.id, id: this.bloc, mode: this.mode, motdepasse: this.motdepasse, pseudo: this.pseudo, lien: this.lien, fichier: this.fichier, date: date, fichierasupprimer: fichierasupprimer }
 			xhr.send(JSON.stringify(json))
+			/* xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+			xhr.send('parcours=' + this.id + '&id=' + this.bloc + '&mode=' + this.mode + '&motdepasse=' + this.motdepasse + '&pseudo=' + this.pseudo + '&lien=' + this.lien + '&fichier=' + this.fichier + '&date=' + date + '&fichierasupprimer=' + fichierasupprimer) */
 		},
 		verifier () {
 			if (this.motdepasse === '') {
@@ -2051,28 +2171,49 @@ section {
 
 #travaux {
 	max-width: 750px;
+	height: 90%;
+}
+
+#travaux .conteneur {
+	padding: 0;
 }
 
 #travaux .travail {
 	display: inline-block;
-	width: 100%;
-	padding: 10px;
+	width: calc(100% - 40px);
 	border: 1px solid #ddd;
 	border-radius: 4px;
-	margin-bottom: 15px;
+	margin: 20px 20px 0 20px;
+}
+
+#travaux .travail:last-child {
+	margin: 20px;
 }
 
 #travaux .travail .meta {
 	display: block;
-	padding-bottom: 10px;
+	padding: 10px 15px;
 	margin-bottom: 10px;
 	border-bottom: 1px dashed #ddd;
+	line-height: 1.25;
+}
+
+#travaux .travail .meta .motdepasse {
+	font-size: 13px;
+}
+
+#travaux .travail .boutons {
+	padding: 0 15px 10px;
 }
 
 #travaux .travail .bouton {
 	font-size: 11px;
 	height: 30px;
 	line-height: 30px;
+}
+
+#travaux .travail .bouton + .bouton {
+	margin-left: 15px;
 }
 
 #travail.deposer,
@@ -2098,6 +2239,24 @@ section {
 #travail .contenu,
 #bloc .contenu {
 	margin-top: 20px;
+}
+
+#travaux #retroaction {
+	width: 100%;
+	outline: 0;
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+	margin-bottom: 10px;
+}
+
+#travail #retroaction {
+	display: block;
+    width: 100%;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 7px 15px;
+    line-height: 1.5;
 }
 
 #texte {
@@ -2365,6 +2524,16 @@ section {
 	}
 }
 
+@media screen and (max-width: 499px) {
+	#travaux,
+	#travail.deposer,
+	#bloc {
+		height: 100%!important;
+		width: 100%!important;
+		border-radius: 0!important;
+	}
+}
+
 @media screen and (max-width: 599px) {
 	#blocs .bloc .date-et-horaire {
 		flex-wrap: wrap;
@@ -2426,6 +2595,14 @@ section {
 
 	#blocs .bloc .action {
 		flex-wrap: wrap!important;;
+	}
+
+	#travaux .travail .meta {
+		font-size: 14px!important;
+	}
+
+	#travaux .travail .meta .motdepasse {
+		font-size: 12px!important;
 	}
 }
 

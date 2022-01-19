@@ -392,6 +392,7 @@ main {
 	margin-right: 0;
 }
 
+.boutons-editeur button label[for="couleur-retroaction"],
 .boutons-editeur button label[for="couleur-texte"] {
 	font-size: 19px!important;
 	margin: 0!important;
@@ -421,11 +422,14 @@ main {
 	color: #aaa;
 }
 
+#travail #retroaction strong,
+#travail #retroaction b,
 .contenu-editeur strong,
 .contenu-editeur b {
 	font-weight: bold;
 }
 
+#travail #retroaction a,
 .contenu-editeur a {
 	color: #00a1e3;
 	text-decoration: underline;

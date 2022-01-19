@@ -33,9 +33,12 @@ if (!empty($_POST['parcours']) && !empty($_POST['donnees'])) {
 			$donnees = $_POST['donnees'];
 			$stmt = $db->prepare('UPDATE digisteps_parcours SET donnees = :donnees WHERE url = :url');
 			if ($stmt->execute(array('donnees' => json_encode($donnees), 'url' => $parcours))) {
-				if (!empty($_POST['fichier']) && $_POST['fichier'] !== '') {
-					if (file_exists('../fichiers/' . $parcours . '/' . $_POST['fichier'])) {
-						unlink('../fichiers/' . $parcours . '/' . $_POST['fichier']);
+				if (!empty($_POST['fichiers'])) {
+					$fichiers = json_decode($_POST['fichiers'], true);
+					foreach ($fichiers as $fichier) {
+						if (file_exists('../fichiers/' . $parcours . '/' . $fichier)) {
+							unlink('../fichiers/' . $parcours . '/' . $fichier);
+						}
 					}
 				}
 				echo 'parcours_modifie';
