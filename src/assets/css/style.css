@@ -68,11 +68,11 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-	background: rgba(0, 0, 0, 0.4);
+	background: rgba(0, 0, 0, 0.5);
 }
 
 .ascenseur {
-	scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
+	scrollbar-color: rgba(0, 0, 0, 0.5) transparent;
 	scrollbar-width: thin;
 }
 
@@ -422,14 +422,19 @@ main {
 	color: #aaa;
 }
 
-#travail #retroaction strong,
-#travail #retroaction b,
+#travaux #retroaction .contenu-editeur:empty:before {
+	content: 'Ajouter un commentaire...';
+	color: #aaa;
+}
+
+#commentaire strong,
+#commentaire b,
 .contenu-editeur strong,
 .contenu-editeur b {
 	font-weight: bold;
 }
 
-#travail #retroaction a,
+#commentaire a,
 .contenu-editeur a {
 	color: #00a1e3;
 	text-decoration: underline;
@@ -458,6 +463,20 @@ main {
 	to {bottom: 30px; opacity: 1;}
 }
 
+/* Transition
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+.fondu-enter-active {
+	transition-property: opacity;
+	transition-duration: 0.2s;
+}
+
+.fondu-enter,
+.fondu-leave-active,
+.fondu-leave,
+.fondu-leave-to {
+	opacity: 0;
+}
+
 /* Chargement
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .conteneur-chargement {
@@ -479,6 +498,23 @@ main {
 @keyframes rotation {
 	0% { transform: rotate(0deg); }
 	100% { transform: rotate(360deg); }
+}
+
+.masque-chargement {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 7px;
+	z-index: 1000;
+}
+
+.masque-chargement .chargement {
+	border: 7px solid #fff;
 }
 
 .barre-progression {
@@ -525,6 +561,11 @@ main {
 
 #conteneur-chargement.chargement-blocs {
 	background: transparent;
+}
+
+
+#conteneur-chargement.chargement-parcours {
+	background: #fff;
 }
 
 #chargement {
