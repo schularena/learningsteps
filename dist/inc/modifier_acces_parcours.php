@@ -3,11 +3,8 @@
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Max-Age: 1000');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 
-if (!empty($_POST['session']) && $_POST['session'] !== '') {
-	session_id($_POST['session']);
-}
 session_start();
 
 if (!empty($_POST['parcours']) && !empty($_POST['question']) && !empty($_POST['reponse']) && !empty($_POST['nouvellequestion']) && !empty($_POST['nouvellereponse'])) {
@@ -30,7 +27,7 @@ if (!empty($_POST['parcours']) && !empty($_POST['question']) && !empty($_POST['r
 			$nouvellereponse = password_hash(strtolower($_POST['nouvellereponse']), PASSWORD_DEFAULT);
 			$stmt = $db->prepare('UPDATE digisteps_parcours SET question = :nouvellequestion, reponse = :nouvellereponse WHERE url = :url');
 			if ($stmt->execute(array('nouvellequestion' => $nouvellequestion, 'nouvellereponse' => $nouvellereponse, 'url' => $parcours))) {
-				$_SESSION['reponse'] = $nouvellereponse;
+				$_SESSION['digisteps'][$parcours]['reponse'] = $nouvellereponse;
 				echo 'acces_modifie';
 			} else {
 				echo 'erreur';

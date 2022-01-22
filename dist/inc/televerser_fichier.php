@@ -3,7 +3,7 @@
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Max-Age: 1000');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 
 if (!empty($_FILES['blob']) && !empty($_POST['parcours'])) {
 	$fichier = $_POST['fichier'];
