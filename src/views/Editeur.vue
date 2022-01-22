@@ -60,6 +60,7 @@
 									<span class="icone" v-if="bloc.vignette.substring(0, 5) === 'icone'"><i class="material-icons">{{ bloc.vignette.substring(6) }}</i></span>
 									<span class="image" v-else><img :src="definirRacine() + 'static/vignettes/' + bloc.vignette + '.png'"></span>
 									<span class="duree" v-if="bloc.heures > 0 || bloc.minutes > 0">{{ definirDuree(bloc.heures, bloc.minutes) }}</span>
+									<span class="cadenas" v-if="bloc.hasOwnProperty('code') === true && bloc.code !== ''"><i class="material-icons">lock</i></span>
 								</div>
 								<div class="contenu" :class="bloc.type">
 									<span class="titre" :style="{'border-color': bloc.couleur}">{{ bloc.titre }}</span>
@@ -70,10 +71,11 @@
 									</div>
 									<span class="lieu" v-if="bloc.lieu !== '' && bloc.lieu.includes('http') === false"><i class="material-icons">place</i><a :href="'https://www.openstreetmap.org/search?query=' + bloc.lieu" target="_blank">{{ bloc.lieu }}</a></span>
 									<span class="lieu" v-else-if="bloc.lieu !== '' && bloc.lieu.includes('http') === true"><i class="material-icons">voice_chat</i><a :href="bloc.lieu" target="_blank">{{ definirDomaine(bloc.lieu) }}</a></span>
-									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== '' || (bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui' && bloc.hasOwnProperty('travaux') === true && bloc.travaux.length > 0)">
-										<a class="bouton" :href="bloc.lien" target="_blank" :style="{'border-color': bloc.couleur}" v-if="bloc.lien !== ''">Ouvrir le lien</a>
-										<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" :style="{'border-color': bloc.couleur}" v-else-if="bloc.fichier !== ''">Télécharger le fichier</a>
-										<span class="bouton travaux" role="button" tabindex="0" :style="{'border-color': bloc.couleur}" v-if="bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui' && bloc.hasOwnProperty('travaux') === true && bloc.travaux.length > 0" @click="ouvrirModaleTravaux(bloc)">Afficher les travaux</span>
+									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== '' || (bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui' && bloc.hasOwnProperty('travaux') === true && bloc.travaux.length > 0) || (bloc.hasOwnProperty('listeCriteres') === true && bloc.listeCriteres.length > 0)">
+										<a class="bouton icone" :href="bloc.lien" target="_blank" title="Ouvrir le lien" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-if="bloc.lien !== ''"><i class="material-icons">open_in_new</i></a>
+										<a class="bouton icone" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" title="Télécharger le fichier" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-else-if="bloc.fichier !== ''"><i class="material-icons">get_app</i></a>
+										<span class="bouton icone" role="button" tabindex="0" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-if="bloc.hasOwnProperty('listeCriteres') === true && bloc.listeCriteres.length > 0" @click="ouvrirModaleCriteres(bloc.listeCriteres)"><i class="material-icons">fact_check</i></span>
+										<span class="bouton icone travaux" role="button" tabindex="0" title="Afficher les travaux" :style="{'border-color': bloc.couleur}" v-if="bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui' && bloc.hasOwnProperty('travaux') === true && bloc.travaux.length > 0" @click="ouvrirModaleTravaux(bloc)"><i class="material-icons">send</i></span>
 									</div>
 								</div>
 								<div class="actions statique">
@@ -93,13 +95,21 @@
 									<span class="texte" v-if="bloc.texte !== ''" v-html="bloc.texte" />
 								</div>
 							</article>
-							<article :id="bloc.id" class="bloc" :style="{'background': eclaircirCouleur(bloc.couleur)}" v-else-if="bloc.visibilite === true && bloc.type !== 'section'">
+							<article :id="bloc.id" class="bloc" :class="{'verrouille': bloc.hasOwnProperty('code') === true && bloc.code !== ''}" :style="{'background': eclaircirCouleur(bloc.couleur)}" v-else-if="bloc.visibilite === true && bloc.type !== 'section'">
 								<div class="vignette" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}">
-									<span class="icone" v-if="bloc.vignette.substring(0, 5) === 'icone'"><i class="material-icons">{{ bloc.vignette.substring(6) }}</i></span>
+									<span class="icone" v-if="bloc.hasOwnProperty('code') === true && bloc.code !== ''"><i class="material-icons">lock</i></span>
+									<span class="icone" v-else-if="(!bloc.hasOwnProperty('code') || bloc.code === '') && bloc.vignette.substring(0, 5) === 'icone'"><i class="material-icons">{{ bloc.vignette.substring(6) }}</i></span>
 									<span class="image" v-else><img :src="definirRacine() + 'static/vignettes/' + bloc.vignette + '.png'"></span>
-									<span class="duree" v-if="bloc.heures > 0 || bloc.minutes > 0">{{ definirDuree(bloc.heures, bloc.minutes) }}</span>
+									<span class="duree" v-if="(!bloc.hasOwnProperty('code') || bloc.code === '') && (bloc.heures > 0 || bloc.minutes > 0)">{{ definirDuree(bloc.heures, bloc.minutes) }}</span>
 								</div>
-								<div class="contenu" :class="bloc.type">
+								<transition name="fondu">
+									<div class="masque-chargement" v-if="chargement && bloc.id === blocId" :style="{'background': bloc.couleur}">
+										<div class="conteneur-chargement">
+											<div class="chargement" :style="{'border-top-color': modifierCouleur(bloc.couleur, -20)}" />
+										</div>
+									</div>
+								</transition>
+								<div class="contenu" :class="bloc.type" v-if="!bloc.hasOwnProperty('code') || bloc.code === ''">
 									<span class="titre" :style="{'border-color': bloc.couleur}">{{ bloc.titre }}</span>
 									<span class="texte" v-if="bloc.texte !== ''" v-html="bloc.texte" />
 									<div class="date-et-horaire" v-if="bloc.date !== '' && bloc.debut !== '' && bloc.fin !== ''">
@@ -108,16 +118,26 @@
 									</div>
 									<span class="lieu" v-if="bloc.lieu !== '' && bloc.lieu.includes('http') === false"><i class="material-icons">place</i><a :href="'https://www.openstreetmap.org/search?query=' + bloc.lieu" target="_blank">{{ bloc.lieu }}</a></span>
 									<span class="lieu" v-else-if="bloc.lieu !== '' && bloc.lieu.includes('http') === true"><i class="material-icons">voice_chat</i><a :href="bloc.lieu" target="_blank">{{ definirDomaine(bloc.lieu) }}</a></span>
-									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== '' || (bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui')">
-										<a class="bouton" :href="bloc.lien" target="_blank" :style="{'border-color': bloc.couleur}" v-if="bloc.lien !== ''">Ouvrir le lien</a>
-										<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" :style="{'border-color': bloc.couleur}" v-else-if="bloc.fichier !== ''">Télécharger le fichier</a>
-										<span class="bouton travaux" role="button" tabindex="0" :style="{'border-color': bloc.couleur}" v-if="bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui'" @click="ouvrirModaleDepot(bloc.id)">Déposer ou consulter un travail</span>
+									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== '' || (bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui') || (bloc.hasOwnProperty('listeCriteres') === true && bloc.listeCriteres.length > 0)">
+										<a class="bouton icone" :href="bloc.lien" target="_blank" title="Ouvrir le lien" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-if="bloc.lien !== ''"><i class="material-icons">open_in_new</i></a>
+										<a class="bouton icone" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" title="Télécharger le fichier" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-else-if="bloc.fichier !== ''"><i class="material-icons">get_app</i></a>
+										<span class="bouton icone" role="button" tabindex="0" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-if="bloc.hasOwnProperty('listeCriteres') === true && bloc.listeCriteres.length > 0" @click="ouvrirModaleCriteres(bloc.listeCriteres)"><i class="material-icons">fact_check</i></span>
+										<span class="bouton icone travaux" role="button" tabindex="0" title="Déposer ou consulter un travail" :style="{'border-color': bloc.couleur}" v-if="bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui'" @click="ouvrirModaleDepot(bloc.id)"><i class="material-icons">reply</i></span>
+									</div>
+								</div>
+								<div class="contenu" v-else-if="bloc.hasOwnProperty('code') === true && bloc.code !== ''">
+									<span class="titre" :style="{'border-color': bloc.couleur}">{{ bloc.titre }}</span>
+									<label>Contenu verrouillé</label>
+									<input type="text" placeholder="Code d'accès pour débloquer le contenu" :style="{'border-color': bloc.couleur}" @keydown.enter="debloquerEtape(bloc.id)">
+									<div class="action">
+										<span class="bouton" role="button" tabindex="0" :style="{'border-color': bloc.couleur}" @click="debloquerEtape(bloc.id)">Valider</span>
+										<span class="bouton icone" role="button" tabindex="0" :style="{'color': bloc.couleur}" @click="$parent.$parent.message = bloc.indice" v-if="bloc.indice !== ''"><i class="material-icons">info</i></span>
 									</div>
 								</div>
 							</article>
 						</template>
 					</div>
-					<div id="blocs" class="vide" v-else-if="blocs.length === 0">
+					<div id="blocs" class="vide" v-else-if="blocs.length === 0 && $parent.$parent.chargement === false">
 						<p>Aucune étape pour le moment.</p>
 					</div>
 				</div>
@@ -130,13 +150,13 @@
 					<span class="titre" v-if="mode === 'creation' && type === '-'">Ajouter une étape</span>
 					<span class="titre" v-else-if="mode === 'creation' && type === 'section'">Ajouter une section</span>
 					<span class="titre" v-else-if="mode === 'creation' && type === 'seance'">Ajouter une séance</span>
-					<span class="titre" v-else-if="mode === 'creation' && type === 'document'">Ajouter un document ou un média</span>
-					<span class="titre" v-else-if="mode === 'creation' && type === 'activite'">Ajouter une activité ou un exercice</span>
-					<span class="titre" v-else-if="mode === 'creation' && type === 'evaluation'">Ajouter une évaluation</span>
+					<span class="titre" v-else-if="mode === 'creation' && type === 'document'">Ajouter un document</span>
+					<span class="titre" v-else-if="mode === 'creation' && type === 'exercice'">Ajouter un exercice</span>
+					<span class="titre" v-else-if="mode === 'creation' && type === 'activite'">Ajouter une activité</span>
 					<span class="titre" v-else>Modifier cette étape</span>
 					<span class="fermer" role="button" tabindex="0" @click="fermerModaleContenu"><i class="material-icons">close</i></span>
 				</header>
-				<div class="conteneur">
+				<div class="conteneur ascenseur">
 					<div class="contenu">
 						<label for="champ-titre">Titre</label>
 						<input id="champ-titre" type="text" placeholder="Ajouter un titre" :value="titre" @input="titre = $event.target.value">
@@ -147,10 +167,10 @@
 						<select @change="modifierType($event.target.value)">
 							<option value="-" :selected="type === '-'">-</option>
 							<option value="section" :selected="type === 'section'">-Section-</option>
-							<option value="seance" :selected="type === 'seance'">Séance en présence ou à distance</option>
-							<option value="document" :selected="type === 'document'">Document ou média</option>
-							<option value="activite" :selected="type === 'activite'">Activité ou exercice</option>
-							<option value="evaluation" :selected="type === 'evaluation'">Évaluation</option>
+							<option value="seance" :selected="type === 'seance'">Séance (en présence ou à distance)</option>
+							<option value="document" :selected="type === 'document'">Document (fichier ou lien)</option>
+							<option value="exercice" :selected="type === 'exercice'">Exercice</option>
+							<option value="activite" :selected="type === 'activite'">Activité</option>
 						</select>
 						<div id="options" v-if="type !== '-' && type !== 'section'">
 							<template v-if="type === 'seance'">
@@ -171,16 +191,17 @@
 								<label for="champ-lieu">Adresse ou lien de visioconférence</label>
 								<input id="champ-lieu" type="text" placeholder="Exemple : 5 rue des fleurs, 2000 La Digitale ou https://meet.jit.si" :value="lieu" @input="lieu = $event.target.value">
 							</template>
-							<template v-else-if="type === 'document' || type === 'activite' || type === 'evaluation'">
+							<template v-else-if="type === 'document' || type === 'exercice' || type === 'activite'">
 								<label>Type de ressource</label>
 								<select @change="modifierRessource($event.target.value)">
-									<option value="-" :selected="ressource === '-'" v-if="type !== 'document'">-</option>
+									<option value="-" :selected="ressource === '-'" v-if="type === 'activite'">-</option>
 									<option value="lien" :selected="ressource === 'lien'">Lien</option>
 									<option value="fichier" :selected="ressource === 'fichier'">Fichier</option>
 								</select>
 								<label for="champ-lien" v-if="ressource === 'lien'">Lien</label>
 								<input id="champ-lien" type="text" placeholder="Exemples : https://ladigitale.dev/digiplay, https://ladigitale.dev/digiread" :value="lien" @input="lien = $event.target.value" v-if="type === 'document' && ressource === 'lien'">
-								<input id="champ-lien" type="text" placeholder="Exemples : https://digipad.app, https://digistorm.app, https://ladigitale.dev/digiquiz" :value="lien" @input="lien = $event.target.value" v-else-if="type !== 'document' && ressource === 'lien'">
+								<input id="champ-lien" type="text" placeholder="Exemples : https://digistorm.app, https://ladigitale.dev/digiquiz" :value="lien" @input="lien = $event.target.value" v-else-if="type === 'exercice' && ressource === 'lien'">
+								<input id="champ-lien" type="text" placeholder="Exemples : https://digipad.app, https://ladigitale.dev/digidoc" :value="lien" @input="lien = $event.target.value" v-else-if="type === 'activite' && ressource === 'lien'">
 								<label v-if="ressource === 'fichier'">Fichier (max. 2 Mo)</label>
 								<div id="fichier" v-if="ressource === 'fichier'">
 									<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + fichier" target="_blank" v-if="mode === 'edition' && fichier !== '' && ancienFichier === fichier">Voir le fichier actuel</a>
@@ -191,7 +212,7 @@
 									<input id="televerser" type="file" accept=".jpg, .jpeg, .png, .gif, .mp3, .mp4, .pdf, .doc, .docx, .odt, .ppt, .pptx, .odp, .xls, .xlsx, .ods" @change="selectionnerFichier" style="display: none;">
 								</div>
 							</template>
-							<template v-if="type === 'activite' || type === 'evaluation'">
+							<template v-if="type === 'activite'">
 								<label>Dépôt par les apprenants (lien ou fichier)</label>
 								<div id="depot">
 									<span class="label">
@@ -203,43 +224,94 @@
 										<label for="depot_non">Non</label>
 									</span>
 								</div>
+								<label>Critères d'évaluation</label>
+								<div id="criteres">
+									<span class="label">
+										<input type="radio" id="criteres_oui" name="criteres" value="oui" :checked="criteres === 'oui'" @change="modifierCriteres($event.target.value)">
+										<label for="criteres_oui">Oui</label>
+									</span>
+									<span class="label">
+										<input type="radio" id="criteres_non" name="criteres" value="non" :checked="criteres === 'non'" @change="modifierCriteres($event.target.value)">
+										<label for="criteres_non">Non</label>
+									</span>
+								</div>
+								<div id="evaluation" v-if="criteres === 'oui'">
+									<label>Libellé du critère</label>
+									<label>Nombre d'étoiles</label>
+									<span class="critere" v-for="(critere, indexCritere) in listeCriteres" :key="'critere_' + indexCritere">
+										<input type="text" placeholder="Exemple : qualité de la langue" :value="critere.libelle" @input="critere.libelle = $event.target.value">
+										<select @change="critere.etoiles = parseInt($event.target.value)">
+											<option :value="1" :selected="critere.etoiles === 1">1</option>
+											<option :value="2" :selected="critere.etoiles === 2">2</option>
+											<option :value="3" :selected="critere.etoiles === 3">3</option>
+											<option :value="4" :selected="critere.etoiles === 4">4</option>
+											<option :value="5" :selected="critere.etoiles === 5">5</option>
+											<option :value="6" :selected="critere.etoiles === 6">6</option>
+											<option :value="7" :selected="critere.etoiles === 7">7</option>
+											<option :value="8" :selected="critere.etoiles === 8">8</option>
+											<option :value="9" :selected="critere.etoiles === 9">9</option>
+											<option :value="10" :selected="critere.etoiles === 10">10</option>
+										</select>
+									</span>
+									<div class="actions">
+										<span role="button" tabindex="0" title="Supprimer un critère" @click="supprimerCritere"><i class="material-icons">remove_circle_outline</i></span>
+										<span role="button" tabindex="0" title="Ajouter un critère" @click="ajouterCritere"><i class="material-icons">add_circle_outline</i></span>
+									</div>
+								</div>
 							</template>
 							<label v-if="type === 'seance'">Durée</label>
 							<label v-else-if="type === 'document'">Durée estimée de consultation</label>
 							<label v-else>Durée estimée de réalisation</label>
 							<div id="duree">
 								<select @change="heures = parseInt($event.target.value)">
-									<option value="0" :selected="heures === 0">0</option>
-									<option value="1" :selected="heures === 1">1</option>
-									<option value="2" :selected="heures === 2">2</option>
-									<option value="3" :selected="heures === 3">3</option>
-									<option value="4" :selected="heures === 4">4</option>
-									<option value="5" :selected="heures === 5">5</option>
-									<option value="6" :selected="heures === 6">6</option>
-									<option value="7" :selected="heures === 7">7</option>
-									<option value="8" :selected="heures === 8">8</option>
-									<option value="9" :selected="heures === 9">9</option>
-									<option value="10" :selected="heures === 10">10</option>
-									<option value="11" :selected="heures === 11">11</option>
-									<option value="12" :selected="heures === 12">12</option>
+									<option :value="0" :selected="heures === 0">0</option>
+									<option :value="1" :selected="heures === 1">1</option>
+									<option :value="2" :selected="heures === 2">2</option>
+									<option :value="3" :selected="heures === 3">3</option>
+									<option :value="4" :selected="heures === 4">4</option>
+									<option :value="5" :selected="heures === 5">5</option>
+									<option :value="6" :selected="heures === 6">6</option>
+									<option :value="7" :selected="heures === 7">7</option>
+									<option :value="8" :selected="heures === 8">8</option>
+									<option :value="9" :selected="heures === 9">9</option>
+									<option :value="10" :selected="heures === 10">10</option>
+									<option :value="11" :selected="heures === 11">11</option>
+									<option :value="12" :selected="heures === 12">12</option>
 								</select>
 								<span>h</span>
 								<select @change="minutes = parseInt($event.target.value)">
-									<option value="0" :selected="minutes === 0">00</option>
-									<option value="5" :selected="minutes === 5">05</option>
-									<option value="10" :selected="minutes === 10">10</option>
-									<option value="15" :selected="minutes === 15">15</option>
-									<option value="20" :selected="minutes === 20">20</option>
-									<option value="25" :selected="minutes === 25">25</option>
-									<option value="30" :selected="minutes === 30">30</option>
-									<option value="35" :selected="minutes === 35">35</option>
-									<option value="40" :selected="minutes === 40">40</option>
-									<option value="45" :selected="minutes === 45">45</option>
-									<option value="50" :selected="minutes === 50">50</option>
-									<option value="55" :selected="minutes === 55">55</option>
+									<option :value="0" :selected="minutes === 0">00</option>
+									<option :value="5" :selected="minutes === 5">05</option>
+									<option :value="10" :selected="minutes === 10">10</option>
+									<option :value="15" :selected="minutes === 15">15</option>
+									<option :value="20" :selected="minutes === 20">20</option>
+									<option :value="25" :selected="minutes === 25">25</option>
+									<option :value="30" :selected="minutes === 30">30</option>
+									<option :value="35" :selected="minutes === 35">35</option>
+									<option :value="40" :selected="minutes === 40">40</option>
+									<option :value="45" :selected="minutes === 45">45</option>
+									<option :value="50" :selected="minutes === 50">50</option>
+									<option :value="55" :selected="minutes === 55">55</option>
 								</select>
 							</div>
 						</div>
+						<template v-if="type !== '-' && type !== 'section'">
+							<label>Étape verrouillée avec un code d'accès</label>
+							<div id="verrouillage">
+								<span class="label">
+									<input type="radio" id="verrouillage_oui" name="verrouillage" value="oui" :checked="verrouillage === 'oui'" @change="modifierVerrouillage($event.target.value)">
+									<label for="verrouillage_oui">Oui</label>
+								</span>
+								<span class="label">
+									<input type="radio" id="verrouillage_non" name="verrouillage" value="non" :checked="verrouillage === 'non'" @change="modifierVerrouillage($event.target.value)">
+									<label for="verrouillage_non">Non</label>
+								</span>
+							</div>
+							<label v-if="verrouillage === 'oui'">Code d'accès</label>
+							<input id="champ-code" type="text" placeholder="Ajouter un code" :value="code" @input="code = $event.target.value" v-if="verrouillage === 'oui'">
+							<label v-if="verrouillage === 'oui'">Indice pour le code d'accès</label>
+							<input id="champ-indice" type="text" placeholder="Exemple : plante herbacée vénéneuse dont la tige porte une longue grappe de fleurs" :value="indice" @input="indice = $event.target.value" v-if="verrouillage === 'oui'">
+						</template>
 						<label v-if="type !== '-' && type !== 'section'">Vignette</label>
 						<select id="vignette" @change="modifierVignette($event.target.value)" v-if="type === 'seance'">
 							<option value="icone_meeting_room" :selected="vignette === 'icone_meeting_room'">Icône classe</option>
@@ -255,6 +327,9 @@
 							<option value="icone_explore" :selected="vignette === 'icone_explore'">Icône explorer</option>
 							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="wikipedia" :selected="vignette === 'wikipedia'">Wikipedia</option>
+							<option value="canoprof" :selected="vignette === 'canoprof'">Canoprof</option>
+							<option value="tv5monde" :selected="vignette === 'tv5monde'">TV5MONDE</option>
+							<option value="lumni" :selected="vignette === 'lumni'">Lumni</option>
 							<option value="peertube" :selected="vignette === 'peertube'">Peertube</option>
 							<option value="pdf" :selected="vignette === 'pdf'">Fichier PDF</option>
 							<option value="odt" :selected="vignette === 'odt'">LibreOffice Writer</option>
@@ -270,25 +345,22 @@
 							<option value="youtube" :selected="vignette === 'youtube'">Youtube</option>
 							<option value="vimeo" :selected="vignette === 'vimeo'">Vimeo</option>
 						</select>
-						<select id="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'activite'">
-							<option value="icone_check_circle" :selected="vignette === 'icone_check_circle'">Icône activité</option>
+						<select id="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'exercice'">
+							<option value="icone_check_circle" :selected="vignette === 'icone_check_circle'">Icône exercice</option>
 							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="h5p" :selected="vignette === 'h5p'">H5P</option>
+							<option value="learningapps" :selected="vignette === 'learningapps'">Learning Apps</option>
 							<option value="snacks" :selected="vignette === 'snacks'">Learning Snacks</option>
-							<option value="quiziniere" :selected="vignette === 'quiziniere'">QuiZinière</option>
-							<option value="vocaroo" :selected="vignette === 'vocaroo'">Vocaroo</option>
 							<option value="quizlet" :selected="vignette === 'quizlet'">Quizlet</option>
-							<option value="flipgrid" :selected="vignette === 'flipgrid'">Flipgrid</option>
-							<option value="genially" :selected="vignette === 'genially'">Genially</option>
 						</select>
-						<select id="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'evaluation'">
+						<select id="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'activite'">
+							<option value="icone_lightbulb" :selected="vignette === 'icone_lightbulb'">Icône activite</option>
 							<option value="icone_assessment" :selected="vignette === 'icone_assessment'">Icône évaluation</option>
+							<option value="icone_check_circle" :selected="vignette === 'icone_check_circle'">Icône coche</option>
 							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="h5p" :selected="vignette === 'h5p'">H5P</option>
-							<option value="snacks" :selected="vignette === 'snacks'">Learning Snacks</option>
 							<option value="quiziniere" :selected="vignette === 'quiziniere'">QuiZinière</option>
 							<option value="vocaroo" :selected="vignette === 'vocaroo'">Vocaroo</option>
-							<option value="quizlet" :selected="vignette === 'quizlet'">Quizlet</option>
 							<option value="flipgrid" :selected="vignette === 'flipgrid'">Flipgrid</option>
 							<option value="genially" :selected="vignette === 'genially'">Genially</option>
 						</select>
@@ -348,17 +420,26 @@
 					<span class="titre">Afficher les travaux</span>
 					<span class="fermer" role="button" tabindex="0" @click="fermerModaleTravaux"><i class="material-icons">close</i></span>
 				</header>
-				<div class="conteneur">
+				<div class="conteneur ascenseur">
 					<div class="contenu">
 						<div :id="'travail' + travail.motdepasse" class="travail" v-for="(travail, indexTravail) in travaux" :key="'travail_' + indexTravail">
 							<span class="meta">par <b>{{ travail.pseudo }}</b> {{ definirDateEtHeure(travail.date) }} <span class="motdepasse">(mot de passe&nbsp;: {{ travail.motdepasse }})</span></span>
 							<div class="boutons">
-								<a class="bouton" :href="travail.lien" target="_blank" v-if="travail.lien !== ''">Ouvrir le lien</a>
-								<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + travail.fichier" target="_blank" v-else-if="travail.fichier !== ''">Télécharger le fichier</a>
-								<span class="bouton" role="button" tabindex="0" @click="afficherRetroaction(travail.motdepasse, travail.retroaction)" v-if="parseInt(travail.motdepasse) !== parseInt(motdepasse) && travail.retroaction === ''">Commenter</span>
-								<span class="bouton" role="button" tabindex="0" @click="afficherRetroaction(travail.motdepasse, travail.retroaction)" v-else-if="parseInt(travail.motdepasse) !== parseInt(motdepasse) && travail.retroaction !== ''">Modifier le commentaire</span>
+								<a class="bouton icone" :href="travail.lien" target="_blank" title="Ouvrir le lien vers le travail" v-if="travail.lien !== ''"><i class="material-icons">open_in_new</i></a>
+								<a class="bouton icone" :href="definirRacine() + 'fichiers/' + id + '/' + travail.fichier" target="_blank" title="Télécharger le travail" v-else-if="travail.fichier !== ''"><i class="material-icons">get_app</i></a>
+								<span class="bouton icone evaluer" role="button" tabindex="0" title="Évaluer" @click="afficherRetroaction(travail)" v-if="parseInt(travail.motdepasse) !== parseInt(motdepasse) && travail.retroaction === ''"><i class="material-icons">edit</i></span>
+								<span class="bouton icone evaluer" role="button" tabindex="0" title="Modifier l'évaluation" @click="afficherRetroaction(travail)" v-else-if="parseInt(travail.motdepasse) !== parseInt(motdepasse) && travail.retroaction !== ''"><i class="material-icons">edit</i></span>
 							</div>
 							<div class="retroaction" v-if="parseInt(travail.motdepasse) === parseInt(motdepasse)">
+								<div id="liste-criteres" v-if="listeCriteres.length > 0">
+									<template v-for="(critere, indexCritere) in listeCriteres" :key="'critere_' + indexCritere">
+										<label>{{ critere.libelle }}</label>
+										<div class="etoiles">
+											<span class="etoile" v-for="etoile in evaluation[indexCritere]" @click="evaluation[indexCritere] = etoile" :key="'etoile_' + etoile"><i class="material-icons">star</i></span>
+											<span class="etoile" v-for="etoile in (critere.etoiles - evaluation[indexCritere])" @click="evaluation[indexCritere] = evaluation[indexCritere] + etoile" :key="'etoile_' + etoile"><i class="material-icons">star_outline</i></span>
+										</div>
+									</template>
+								</div>
 								<div id="retroaction" />
 								<div class="boutons">
 									<span class="bouton" role="button" tabindex="0" @click="annulerRetroaction">Annuler</span>
@@ -381,7 +462,7 @@
 					<span class="titre" v-else>Déposer ou consulter un travail</span>
 					<span class="fermer" role="button" tabindex="0" @click="fermerModaleDepot"><i class="material-icons">close</i></span>
 				</header>
-				<div class="conteneur">
+				<div class="conteneur ascenseur">
 					<div class="contenu">
 						<label v-if="mode === '' || mode === '-'">Je veux...</label>
 						<select @change="modifierModeDepot($event.target.value)" v-if="mode === '' || mode === '-'">
@@ -432,14 +513,42 @@
 								<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="fichier !== '' && ancienFichier !== fichier">{{ fichier }}</label>
 								<input id="televerser" type="file" accept=".jpg, .jpeg, .png, .gif, .mp3, .mp4, .pdf, .doc, .docx, .odt, .ppt, .pptx, .odp, .xls, .xlsx, .ods" @change="selectionnerFichier" style="display: none;">
 							</div>
-							<label>Rétroaction</label>
-							<div id="retroaction" v-if="retroaction !== ''" v-html="retroaction" />
-							<div id="retroaction" v-else>Aucune rétroaction.</div>
+							<label>Commentaire</label>
+							<div id="commentaire" v-if="retroaction !== ''" v-html="retroaction" />
+							<div id="commentaire" v-else>Aucun commentaire.</div>
+							<div id="etoiles" v-if="evaluation.length > 0">
+								<template v-for="(critere, indexCritere) in listeCriteres" :key="'critere_' + indexCritere">
+									<label>{{ critere.libelle }}</label>
+									<div class="etoiles">
+										<span class="etoile" v-for="etoile in evaluation[indexCritere]" :key="'etoile_' + etoile"><i class="material-icons">star</i></span>
+										<span class="etoile" v-for="etoile in (critere.etoiles - evaluation[indexCritere])" :key="'etoile_' + etoile"><i class="material-icons">star_outline</i></span>
+									</div>
+								</template>
+							</div>
 						</template>
 					</div>
 				</div>
 				<div id="valider" role="button" tabindex="0" @click="deposer" v-if="mode === 'deposer' || mode === 'afficher'">Valider</div>
 				<div id="valider" role="button" tabindex="0" @click="verifier" v-else-if="mode === 'verifier'">Valider</div>
+			</div>
+		</div>
+
+		<div class="conteneur-modale" v-else-if="modale === 'criteres'">
+			<div class="modale">
+				<header>
+					<span class="titre">Critères d'évaluation</span>
+					<span class="fermer" role="button" tabindex="0" @click="fermerModaleCriteres"><i class="material-icons">close</i></span>
+				</header>
+				<div class="conteneur">
+					<div class="contenu">
+						<template v-for="(critere, indexCritere) in listeCriteres" :key="'critere_' + indexCritere">
+							<label>{{ critere.libelle }}</label>
+							<div class="etoiles">
+								<span class="etoile" v-for="etoile in critere.etoiles" :key="'etoile_' + etoile"><i class="material-icons">star</i></span>
+							</div>
+						</template>
+					</div>
+				</div>
 			</div>
 		</div>
 
@@ -563,6 +672,7 @@ import ClipboardJS from 'clipboard'
 import pell from 'pell'
 import linkifyHtml from 'linkify-html'
 import moment from 'moment'
+import imagesLoaded from 'imagesloaded'
 import { VueDraggableNext } from 'vue-draggable-next'
 
 export default {
@@ -585,7 +695,7 @@ export default {
 			nouvellereponse: '',
 			blocs: [],
 			mode: 'creation',
-			bloc: '',
+			blocId: '',
 			titre: '',
 			texte: '',
 			type: '-',
@@ -600,13 +710,20 @@ export default {
 			depot: 'non',
 			travaux: [],
 			retroaction: '',
-			pseudo: '',
-			motdepasse: '',
+			evaluation: [],
+			criteres: 'non',
+			listeCriteres: [],
+			verrouillage: 'non',
+			code: '',
+			indice: '',
 			vignette: '',
 			heures: 0,
 			minutes: 0,
 			couleur: '#00ced1',
 			couleurs: ['#00ced1', '#55efc4', '#74b9ff', '#a29bfe', '#ffeaa7', '#fab1a0', '#fea7c6'],
+			pseudo: '',
+			motdepasse: '',
+			chargement: false,
 			codeqr: '',
 			position: 0,
 			progression: 0
@@ -621,66 +738,41 @@ export default {
 	},
 	created () {
 		this.id = this.$route.params.id
-		let session = ''
-		if (localStorage.getItem('session')) {
-			session = localStorage.getItem('session')
-		}
-		if (localStorage.getItem('selection')) {
-			this.selection = JSON.parse(localStorage.getItem('selection'))
-		}
+		this.$parent.$parent.chargement = false
 		const xhr = new XMLHttpRequest()
 		xhr.onload = function () {
 			if (xhr.readyState === xhr.DONE && xhr.status === 200) {
-				let reponse
-				try {
-					reponse = JSON.parse(xhr.responseText)
-				} catch (_) {
+				if (this.verifierJSON(xhr.responseText) === false) {
 					this.$router.push('/')
+					return false
 				}
+				const reponse = JSON.parse(xhr.responseText)
 				if (!reponse.nom || reponse.nom === '') {
 					this.$router.push('/')
-				} else {
-					this.admin = reponse.admin
-					this.nom = reponse.nom
-					if (reponse.donnees !== '') {
-						const donnees = JSON.parse(reponse.donnees)
-						this.blocs = donnees.blocs
-					}
-					setTimeout(function () {
-						document.title = this.nom + ' - Digisteps by La Digitale'
-						this.$parent.$parent.chargement = false
-						const textes = document.querySelectorAll('.texte')
-						textes.forEach(function (texte) {
-							if (texte.scrollHeight > texte.clientHeight) {
-								const span = document.createElement('span')
-								span.classList.add('lire')
-								span.textContent = 'Lire la suite'
-								texte.insertAdjacentElement('afterend', span)
-							}
-						})
-						const balises = document.querySelectorAll('.lire')
-						balises.forEach(function (balise) {
-							balise.addEventListener('click', function () {
-								const id = balise.parentNode.parentNode.id
-								if (document.querySelector('#' + id + ' .texte').style.display === 'block') {
-									document.querySelector('#' + id + ' .texte').style.display = '-webkit-box'
-									balise.textContent = 'Lire la suite'
-								} else {
-									document.querySelector('#' + id + ' .texte').style.display = 'block'
-									balise.textContent = 'Réduire'
-								}
-							})
-						})
-					}.bind(this), 300)
+					return false
 				}
+				this.admin = reponse.admin
+				this.nom = reponse.nom
+				if (reponse.donnees !== '') {
+					const donnees = JSON.parse(reponse.donnees)
+					donnees.bloc
+					this.blocs = donnees.blocs
+				}
+				setTimeout(function () {
+					document.title = this.nom + ' - Digisteps by La Digitale'
+					this.verifierTextes()
+					imagesLoaded('#blocs', { background: true }, function () {
+						this.$parent.$parent.chargementParcours = false
+					}.bind(this))
+				}.bind(this), 300)
 			} else {
-				this.$parent.$parent.chargement = false
+				this.$parent.$parent.chargementParcours = false
 				this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 			}
 		}.bind(this)
-		xhr.open('POST', this.$parent.$parent.hote + '/inc/recuperer_parcours.php', true)
+		xhr.open('POST', this.$parent.$parent.hote + 'inc/recuperer_parcours.php', true)
 		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-		xhr.send('id=' + this.id + '&session=' + session)
+		xhr.send('id=' + this.id)
 	},
 	mounted () {
 		const lien = this.definirRacine() + '#/s/' + this.id
@@ -751,6 +843,58 @@ export default {
 		definirDomaine (url) {
 			return (new URL(url)).hostname
 		},
+		verifierJSON (json) {
+			try {
+				JSON.parse(json)
+				return true
+			} catch {
+				return false
+			}
+		},
+		verifierTextes () {
+			let balises = document.querySelectorAll('.lire')
+			balises.forEach(function (balise) {
+				balise.parentNode.removeChild(balise)
+			})
+			const textes = document.querySelectorAll('.texte')
+			textes.forEach(function (texte) {
+				if (texte.scrollHeight > texte.clientHeight) {
+					const id = texte.parentNode.parentNode.id
+					const divs = document.querySelectorAll('#' + id + ' .texte div')
+					divs.forEach(function (div, index) {
+						if (index > 0) {
+							div.style.display = 'none'
+						}
+					})
+					const span = document.createElement('span')
+					span.classList.add('lire')
+					span.textContent = 'Lire la suite'
+					texte.insertAdjacentElement('afterend', span)
+				}
+			})
+			balises = document.querySelectorAll('.lire')
+			balises.forEach(function (balise) {
+				balise.addEventListener('click', function () {
+					const id = balise.parentNode.parentNode.id
+					const divs = document.querySelectorAll('#' + id + ' .texte div')
+					if (document.querySelector('#' + id + ' .texte').style.display === 'block') {
+						document.querySelector('#' + id + ' .texte').style.display = '-webkit-box'
+						balise.textContent = 'Lire la suite'
+						divs.forEach(function (div, index) {
+							if (index > 0) {
+								div.style.display = 'none'
+							}
+						})
+					} else {
+						document.querySelector('#' + id + ' .texte').style.display = 'block'
+						balise.textContent = 'Réduire'
+						divs.forEach(function (div) {
+							div.style.display = 'block'
+						})
+					}
+				})
+			})
+		},
 		afficherMenuPartager () {
 			this.menu = 'partager'
 			this.$nextTick(function () {
@@ -763,7 +907,7 @@ export default {
 		ouvrirModaleBloc (mode, item) {
 			this.mode = mode
 			if (mode === 'edition') {
-				this.bloc = item.id
+				this.blocId = item.id
 				this.titre = item.titre
 				this.texte = item.texte
 				this.type = item.type
@@ -779,11 +923,29 @@ export default {
 				} else if (this.fichier !== '') {
 					this.ressource = 'fichier'
 				}
+				if (this.type === 'evaluation') {
+					this.type = 'activite'
+				}
 				if (item.hasOwnProperty('depot') === true) {
 					this.depot = item.depot
 				}
 				if (item.hasOwnProperty('travaux') === true) {
 					this.travaux = item.travaux
+				}
+				if (item.hasOwnProperty('criteres') === true) {
+					this.criteres = item.criteres
+				}
+				if (item.hasOwnProperty('listeCriteres') === true) {
+					this.listeCriteres = item.listeCriteres
+				}
+				if (item.hasOwnProperty('verrouillage') === true) {
+					this.verrouillage = item.verrouillage
+				}
+				if (item.hasOwnProperty('code') === true) {
+					this.code = item.code
+				}
+				if (item.hasOwnProperty('indice') === true) {
+					this.indice = item.indice
 				}
 				this.vignette = item.vignette
 				this.heures = item.heures
@@ -799,44 +961,47 @@ export default {
 						document.querySelector('#couleur').value = item.couleur
 					})
 				}
-				document.querySelector('#texte').innerHTML = ''
-				const editeur = pell.init({
-					element: document.querySelector('#texte'),
-					onChange: function (html) {
-						let texte = html.replace(/(<a [^>]*)(target="[^"]*")([^>]*>)/gi, '$1$3')
-						texte = texte.replace(/(<a [^>]*)(>)/gi, '$1 target="_blank"$2')
-						texte = linkifyHtml(texte, {
-							defaultProtocol: 'https'
-						})
-						this.texte = texte
-					}.bind(this),
-					actions: [
-						{ name: 'gras', title: 'Gras', icon: '<i class="material-icons">format_bold</i>', result: () => pell.exec('bold') },
-						{ name: 'italique', title: 'Italique', icon: '<i class="material-icons">format_italic</i>', result: () => pell.exec('italic') },
-						{ name: 'souligne', title: 'Souligné', icon: '<i class="material-icons">format_underlined</i>', result: () => pell.exec('underline') },
-						{ name: 'barre', title: 'Barré', icon: '<i class="material-icons">format_strikethrough</i>', result: () => pell.exec('strikethrough') },
-						{ name: 'listeordonnee', title: 'Liste ordonnée', icon: '<i class="material-icons">format_list_numbered</i>', result: () => pell.exec('insertOrderedList') },
-						{ name: 'liste', title: 'Liste', icon: '<i class="material-icons">format_list_bulleted</i>', result: () => pell.exec('insertUnorderedList') },
-						{ name: 'couleur', title: 'Couleur du texte', icon: '<label for="couleur-texte"><i class="material-icons">format_color_text</i></label><input id="couleur-texte" type="color" style="display: none;">', result: () => undefined },
-						{ name: 'lien', title: 'Lien', icon: '<i class="material-icons">link</i>', result: () => { const url = window.prompt('Adresse du lien'); if (url) { pell.exec('createLink', url) } } }
-					],
-					classes: { actionbar: 'boutons-editeur', button: 'bouton-editeur', content: 'contenu-editeur', selected: 'bouton-actif' }
-				})
-				editeur.content.innerHTML = this.texte
-				editeur.onpaste = function (event) {
-					event.preventDefault()
-					event.stopPropagation()
-					const texte = event.clipboardData.getData('text/plain')
-					pell.exec('insertText', texte)
-				}
-				document.querySelector('#texte .contenu-editeur').addEventListener('focus', function () {
-					document.querySelector('#texte').classList.add('focus')
-				})
-				document.querySelector('#texte .contenu-editeur').addEventListener('blur', function () {
-					document.querySelector('#texte').classList.remove('focus')
-				})
-				document.querySelector('#couleur-texte').addEventListener('change', this.modifierCouleurTexte)
+				this.chargerEditeur()
 			})
+		},
+		chargerEditeur () {
+			document.querySelector('#texte').innerHTML = ''
+			const editeur = pell.init({
+				element: document.querySelector('#texte'),
+				onChange: function (html) {
+					let texte = html.replace(/(<a [^>]*)(target="[^"]*")([^>]*>)/gi, '$1$3')
+					texte = texte.replace(/(<a [^>]*)(>)/gi, '$1 target="_blank"$2')
+					texte = linkifyHtml(texte, {
+						defaultProtocol: 'https'
+					})
+					this.texte = texte
+				}.bind(this),
+				actions: [
+					{ name: 'gras', title: 'Gras', icon: '<i class="material-icons">format_bold</i>', result: () => pell.exec('bold') },
+					{ name: 'italique', title: 'Italique', icon: '<i class="material-icons">format_italic</i>', result: () => pell.exec('italic') },
+					{ name: 'souligne', title: 'Souligné', icon: '<i class="material-icons">format_underlined</i>', result: () => pell.exec('underline') },
+					{ name: 'barre', title: 'Barré', icon: '<i class="material-icons">format_strikethrough</i>', result: () => pell.exec('strikethrough') },
+					{ name: 'listeordonnee', title: 'Liste ordonnée', icon: '<i class="material-icons">format_list_numbered</i>', result: () => pell.exec('insertOrderedList') },
+					{ name: 'liste', title: 'Liste', icon: '<i class="material-icons">format_list_bulleted</i>', result: () => pell.exec('insertUnorderedList') },
+					{ name: 'couleur', title: 'Couleur du texte', icon: '<label for="couleur-texte"><i class="material-icons">format_color_text</i></label><input id="couleur-texte" type="color" style="display: none;">', result: () => undefined },
+					{ name: 'lien', title: 'Lien', icon: '<i class="material-icons">link</i>', result: () => { const url = window.prompt('Adresse du lien'); if (url) { pell.exec('createLink', url) } } }
+				],
+				classes: { actionbar: 'boutons-editeur', button: 'bouton-editeur', content: 'contenu-editeur', selected: 'bouton-actif' }
+			})
+			editeur.content.innerHTML = this.texte
+			editeur.onpaste = function (event) {
+				event.preventDefault()
+				event.stopPropagation()
+				const texte = event.clipboardData.getData('text/plain')
+				pell.exec('insertText', texte)
+			}
+			document.querySelector('#texte .contenu-editeur').addEventListener('focus', function () {
+				document.querySelector('#texte').classList.add('focus')
+			})
+			document.querySelector('#texte .contenu-editeur').addEventListener('blur', function () {
+				document.querySelector('#texte').classList.remove('focus')
+			})
+			document.querySelector('#couleur-texte').addEventListener('change', this.modifierCouleurTexte)
 		},
 		modifierType (type) {
 			this.type =  type
@@ -850,15 +1015,24 @@ export default {
 				this.lien = ''
 				this.fichier = ''
 				this.depot = 'non'
+				this.criteres = 'non'
+				this.listeCriteres = []
+				this.verrouillage = 'non'
+				this.code = ''
+				this.indice = ''
 				this.heures = 0
 				this.minutes = 0
 				this.vignette = ''
+				this.code = ''
+				this.indice = ''
 				break
 			case 'seance':
 				this.ressource = '-'
 				this.lien = ''
 				this.fichier = ''
 				this.depot = 'non'
+				this.criteres = 'non'
+				this.listeCriteres = []
 				this.vignette = 'icone_meeting_room'
 				break
 			case 'document':
@@ -868,21 +1042,27 @@ export default {
 				this.lieu = ''
 				this.ressource = 'lien'
 				this.depot = 'non'
+				this.criteres = 'non'
+				this.listeCriteres = []
 				this.vignette = 'icone_article'
+				break
+			case 'exercice':
+				this.date = ''
+				this.debut = ''
+				this.fin = ''
+				this.lieu = ''
+				this.ressource = 'lien'
+				this.depot = 'non'
+				this.criteres = 'non'
+				this.listeCriteres = []
+				this.vignette = 'icone_check_circle'
 				break
 			case 'activite':
 				this.date = ''
 				this.debut = ''
 				this.fin = ''
 				this.lieu = ''
-				this.vignette = 'icone_check_circle'
-				break
-			case 'evaluation':
-				this.date = ''
-				this.debut = ''
-				this.fin = ''
-				this.lieu = ''
-				this.vignette = 'icone_assessment'
+				this.vignette = 'icone_lightbulb'
 				break
 			}
 		},
@@ -890,6 +1070,21 @@ export default {
 			this.ressource = ressource
 			this.lien = ''
 			this.fichier = ''
+		},
+		modifierCriteres (criteres) {
+			this.criteres = criteres
+			if (criteres === 'non') {
+				this.listeCriteres = []
+			} else {
+				this.listeCriteres = [{ libelle: '', etoiles: 1, evaluation: '' }]
+			}
+		},
+		modifierVerrouillage (verrouillage) {
+			this.verrouillage = verrouillage
+			if (verrouillage === 'non') {
+				this.code = ''
+				this.indice = ''
+			}
 		},
 		modifierVignette (vignette) {
 			this.vignette = vignette
@@ -907,6 +1102,14 @@ export default {
 		},
 		selectionnerCouleur (couleur) {
 			this.couleur = couleur
+		},
+		ajouterCritere () {
+			this.listeCriteres.push({ libelle: '', etoiles: 1, evaluation: '' })
+		},
+		supprimerCritere () {
+			if (this.listeCriteres.length > 1) {
+				this.listeCriteres.splice(this.listeCriteres.length - 1, 1)
+			}
 		},
 		verifierBloc () {
 			if (this.titre === '') {
@@ -926,16 +1129,33 @@ export default {
 					this.$parent.$parent.message = 'Veuillez indiquer une adresse ou un lien de visioconférence.'
 				}
 				return false
-			} else if ((this.type === 'document' || this.type === 'activite' || this.type === 'evaluation') && (this.ressource === 'lien' && this.lien !== '' && this.verifierLien(this.lien) === false)) {
+			} else if ((this.type === 'document' || this.type === 'exercice' || this.type === 'activite') && (this.ressource === 'lien' && this.lien !== '' && this.verifierLien(this.lien) === false)) {
 				this.$parent.$parent.message = 'Veuillez indiquer un lien valide.'
 				return false
-			} else if ((this.type === 'document' || this.type === 'activite' || this.type === 'evaluation') && (this.ressource !== '-' && this.lien === '' && this.fichier === '')) {
+			} else if ((this.type === 'document' || this.type === 'exercice' || this.type === 'activite') && (this.ressource !== '-' && this.lien === '' && this.fichier === '')) {
 				if (this.ressource === 'lien' && this.lien === '') {
 					this.$parent.$parent.message = 'Veuillez indiquer un lien.'
 				} else if (this.ressource === 'fichier' && this.fichier === '') {
 					this.$parent.$parent.message = 'Veuillez sélectionner un fichier.'
 				}
 				return false
+			} else if (this.type !== 'section' && (this.verrouillage === 'oui' && this.code === '')) {
+				this.$parent.$parent.message = 'Veuillez indiquer un code.'
+				return false
+			} else if (this.type === 'activite' && this.criteres === 'oui') {
+				let criteresCorrects = 0
+				this.listeCriteres.forEach(function (critere) {
+					if (critere.libelle !== '' && critere.etoiles !== '') {
+						criteresCorrects++
+					}
+				})
+				if (criteresCorrects < this.listeCriteres.length && this.listeCriteres.length === 1) {
+					this.$parent.$parent.message = 'Veuillez indiquer un libellé pour le critère.'
+					return false
+				} else if (criteresCorrects < this.listeCriteres.length && this.listeCriteres.length > 1) {
+					this.$parent.$parent.message = 'Veuillez indiquer un libellé pour chaque critère.'
+					return false
+				}
 			}
 			return true
 		},
@@ -954,7 +1174,6 @@ export default {
 						if (xhr.readyState === xhr.DONE && xhr.status === 200) {
 							this.progression = 0
 							if (xhr.responseText === 'erreur') {
-								this.modale = 'bloc'
 								this.$parent.$parent.message = 'Erreur lors du téléversement du fichier.'
 								resolve('erreur')
 							} else {
@@ -973,10 +1192,9 @@ export default {
 							this.progression = Math.round(pourcentage)
 						}
 					}.bind(this)
-					xhr.open('POST', this.$parent.$parent.hote + '/inc/televerser_fichier.php', true)
+					xhr.open('POST', this.$parent.$parent.hote + 'inc/televerser_fichier.php', true)
 					xhr.send(formData)
 				} else {
-					this.modale = 'bloc'
 					this.$parent.$parent.message = 'La taille maximale autorisée est 2 Mo.'
 					resolve('erreur')
 				}
@@ -987,19 +1205,21 @@ export default {
 				return false
 			}
 			if (this.ressource === 'fichier' && this.fichier !== '') {
-				this.fichier = await this.televerserFichier()
-				if (this.fichier === 'erreur') {
+				const fichier = await this.televerserFichier()
+				if (fichier === 'erreur') {
+					this.modale = 'bloc'
+					this.$nextTick(function () {
+						this.chargerEditeur()
+					}.bind(this))
 					return false
+				} else {
+					this.fichier = fichier
 				}
 			}
 			this.$parent.$parent.chargement = true
-			let session = ''
-			if (localStorage.getItem('session')) {
-				session = localStorage.getItem('session')
-			}
 			const id = 'etape-' + (new Date()).getTime() + Math.random().toString(16).slice(10)
 			const blocs = JSON.parse(JSON.stringify(this.blocs))
-			const bloc = { id: id, titre: this.titre, texte: this.texte, type: this.type, date: this.date, debut: this.debut, fin: this.fin, lieu: this.lieu, lien: this.lien, fichier: this.fichier, depot: this.depot, travaux: this.travaux, vignette: this.vignette, heures: this.heures, minutes: this.minutes, couleur: this.couleur, visibilite: true }
+			const bloc = { id: id, titre: this.titre, texte: this.texte, type: this.type, date: this.date, debut: this.debut, fin: this.fin, lieu: this.lieu, lien: this.lien, fichier: this.fichier, depot: this.depot, travaux: this.travaux, criteres: this.criteres, listeCriteres: this.listeCriteres, verrouillage: this.verrouillage, code: this.code, indice: this.indice, vignette: this.vignette, heures: this.heures, minutes: this.minutes, couleur: this.couleur, visibilite: true }
 			blocs.push(bloc)
 			const xhr = new XMLHttpRequest()
 			xhr.onload = function () {
@@ -1014,25 +1234,7 @@ export default {
 						this.blocs.push(bloc)
 						this.$parent.$parent.notification = 'Étape ajoutée.'
 						this.$nextTick(function () {
-							const texte = document.querySelector('#' + id + ' .texte')
-							if (texte && texte.scrollHeight > texte.clientHeight) {
-								const span = document.createElement('span')
-								span.classList.add('lire')
-								span.textContent = 'Lire la suite'
-								texte.insertAdjacentElement('afterend', span)
-							}
-							const balise = document.querySelector('#' + id + ' .lire')
-							if (balise) {
-								balise.addEventListener('click', function () {
-									if (texte.style.display === 'block') {
-										texte.style.display = '-webkit-box'
-										balise.textContent = 'Lire la suite'
-									} else {
-										texte.style.display = 'block'
-										balise.textContent = 'Réduire'
-									}
-								})
-							}
+							this.verifierTextes()
 						})
 					}
 				} else {
@@ -1041,9 +1243,9 @@ export default {
 					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 				}
 			}.bind(this)
-			xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
+			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }) }
 			xhr.send(JSON.stringify(json))
 		},
 		async modifierBloc () {
@@ -1051,9 +1253,15 @@ export default {
 				return false
 			}
 			if (this.ressource === 'fichier' && this.fichier !== this.ancienFichier) {
-				this.fichier = await this.televerserFichier()
-				if (this.fichier === 'erreur') {
+				const fichier = await this.televerserFichier()
+				if (fichier === 'erreur') {
+					this.modale = 'bloc'
+					this.$nextTick(function () {
+						this.chargerEditeur()
+					}.bind(this))
 					return false
+				} else {
+					this.fichier = fichier
 				}
 			}
 			const fichiers = []
@@ -1061,14 +1269,10 @@ export default {
 				fichiers.push(this.ancienFichier)
 			}
 			this.$parent.$parent.chargement = true
-			let session = ''
-			if (localStorage.getItem('session')) {
-				session = localStorage.getItem('session')
-			}
 			const blocs = JSON.parse(JSON.stringify(this.blocs))
 			blocs.forEach(function (bloc, index) {
-				if (bloc.id === this.bloc) {
-					blocs.splice(index, 1, { id: bloc.id, titre: this.titre, texte: this.texte, type: this.type, date: this.date, debut: this.debut, fin: this.fin, lieu: this.lieu, lien: this.lien, fichier: this.fichier, depot: this.depot, travaux: this.travaux, vignette: this.vignette, heures: this.heures, minutes: this.minutes, couleur: this.couleur, visibilite: bloc.visibilite })
+				if (bloc.id === this.blocId) {
+					blocs.splice(index, 1, { id: bloc.id, titre: this.titre, texte: this.texte, type: this.type, date: this.date, debut: this.debut, fin: this.fin, lieu: this.lieu, lien: this.lien, fichier: this.fichier, depot: this.depot, travaux: this.travaux, criteres: this.criteres, listeCriteres: this.listeCriteres, verrouillage: this.verrouillage, code: this.code, indice: this.indice, vignette: this.vignette, heures: this.heures, minutes: this.minutes, couleur: this.couleur, visibilite: bloc.visibilite })
 				}
 			}.bind(this))
 			const xhr = new XMLHttpRequest()
@@ -1084,29 +1288,8 @@ export default {
 						this.blocs = blocs
 						this.$parent.$parent.notification = 'Étape modifiée.'
 						this.$nextTick(function () {
-							const texte = document.querySelector('#' + this.bloc + ' .texte')
-							const balise = document.querySelector('#' + this.bloc + ' .lire')
-							if (texte && texte.scrollHeight > texte.clientHeight && !balise) {
-								const span = document.createElement('span')
-								span.classList.add('lire')
-								span.textContent = 'Lire la suite'
-								texte.insertAdjacentElement('afterend', span)
-							}
-							if (texte && texte.scrollHeight === texte.clientHeight && balise) {
-								balise.parentNode.removeChild(balise)
-							}
-							if (balise) {
-								balise.addEventListener('click', function () {
-									if (texte.style.display === 'block') {
-										texte.style.display = '-webkit-box'
-										balise.textContent = 'Lire la suite'
-									} else {
-										texte.style.display = 'block'
-										balise.textContent = 'Réduire'
-									}
-								})
-							}
-						}.bind(this))
+							this.verifierTextes()
+						})
 					}
 				} else {
 					this.$parent.$parent.chargement = false
@@ -1114,9 +1297,9 @@ export default {
 					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 				}
 			}.bind(this)
-			xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
+			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session, fichiers: JSON.stringify(fichiers) }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), fichiers: JSON.stringify(fichiers) }
 			xhr.send(JSON.stringify(json))
 		},
 		fermerModaleContenu () {
@@ -1135,19 +1318,23 @@ export default {
 			this.ancienFichier = ''
 			this.depot = 'non'
 			this.travaux = []
+			this.criteres = 'non'
+			this.listeCriteres = []
 			this.vignette = ''
+			this.verrouillage = 'non'
+			this.code = ''
+			this.indice = ''
 			this.heures = 0
 			this.minutes = 0
 			this.couleur = '#00ced1'
 			this.progression = 0
 		},
 		modifierPositionBloc () {
+			this.$nextTick(function () {
+				this.verifierTextes()
+			})
 			if (this.blocs.length > 1) {
 				this.$parent.$parent.chargementBlocs = true
-				let session = ''
-				if (localStorage.getItem('session')) {
-					session = localStorage.getItem('session')
-				}
 				const xhr = new XMLHttpRequest()
 				xhr.onload = function () {
 					if (xhr.readyState === xhr.DONE && xhr.status === 200) {
@@ -1160,18 +1347,14 @@ export default {
 						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 					}
 				}.bind(this)
-				xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
+				xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 				xhr.setRequestHeader('Content-type', 'application/json')
-				const json = { parcours: this.id, donnees: JSON.stringify({ blocs: this.blocs }), session: session }
+				const json = { parcours: this.id, donnees: JSON.stringify({ blocs: this.blocs }) }
 				xhr.send(JSON.stringify(json))
 			}
 		},
 		modifierVisibiliteBloc (id) {
 			this.$parent.$parent.chargement = true
-			let session = ''
-			if (localStorage.getItem('session')) {
-				session = localStorage.getItem('session')
-			}
 			const blocs = JSON.parse(JSON.stringify(this.blocs))
 			blocs.forEach(function (item, index) {
 				if (item.id === id) {
@@ -1195,26 +1378,22 @@ export default {
 					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 				}
 			}.bind(this)
-			xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
+			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }) }
 			xhr.send(JSON.stringify(json))
 		},
 		afficherSupprimerBloc (id) {
-			this.bloc = id
+			this.blocId = id
 			this.modale = 'supprimer-bloc'
 		},
 		supprimerBloc () {
 			this.modale = ''
 			this.$parent.$parent.chargement = true
-			let session = ''
-			if (localStorage.getItem('session')) {
-				session = localStorage.getItem('session')
-			}
 			const blocs = JSON.parse(JSON.stringify(this.blocs))
 			const fichiers = []
 			blocs.forEach(function (item, index) {
-				if (item.id === this.bloc) {
+				if (item.id === this.blocId) {
 					if (item.fichier !== '') {
 						fichiers.push(item.fichier)
 					}
@@ -1245,19 +1424,47 @@ export default {
 					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 				}
 			}.bind(this)
-			xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
+			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session, fichiers: JSON.stringify(fichiers) }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), fichiers: JSON.stringify(fichiers) }
 			xhr.send(JSON.stringify(json))
 		},
+		ouvrirModaleCriteres (criteres) {
+			this.listeCriteres = criteres
+			this.modale = 'criteres'
+		},
+		fermerModaleCriteres () {
+			this.modale = ''
+			this.listeCriteres = []
+		},
 		ouvrirModaleTravaux (bloc) {
-			this.bloc = bloc.id
-			this.travaux = bloc.travaux
+			this.blocId = bloc.id
+			if (bloc.hasOwnProperty('travaux') ===  true) {
+				this.travaux = bloc.travaux
+			}
+			if (bloc.hasOwnProperty('listeCriteres') ===  true) {
+				this.listeCriteres = bloc.listeCriteres
+			}
 			this.modale = 'travaux'
 		},
-		afficherRetroaction (motdepasse, retroaction) {
-			this.motdepasse = motdepasse
-			this.retroaction = retroaction
+		afficherRetroaction (travail) {
+			this.evaluation = []
+			this.motdepasse = travail.motdepasse
+			this.retroaction = travail.retroaction
+			if (travail.hasOwnProperty('evaluation') === true && this.listeCriteres.length > 0) {
+				this.listeCriteres.forEach(function (critere, index) {
+					if (!travail.evaluation[index]) {
+						travail.evaluation[index] = 0
+					} else if (parseInt(travail.evaluation[index]) > critere.etoiles) {
+						travail.evaluation[index] = critere.etoiles
+					}
+				})
+				this.evaluation = travail.evaluation
+			} else if (!travail.hasOwnProperty('evaluation') && this.listeCriteres.length > 0) {
+				this.listeCriteres.forEach(function () {
+					this.evaluation.push(0)
+				}.bind(this))
+			}
 			this.$nextTick(function () {
 				document.querySelector('#retroaction').innerHTML = ''
 				const editeur = pell.init({
@@ -1299,64 +1506,101 @@ export default {
 			})
 		},
 		enregistrerRetroaction () {
-			if (this.retroaction !== '') {
-				this.$parent.$parent.chargement = true
-				let session = ''
-				if (localStorage.getItem('session')) {
-					session = localStorage.getItem('session')
-				}
-				const blocs = JSON.parse(JSON.stringify(this.blocs))
-				blocs.forEach(function (bloc) {
-					if (bloc.id === this.bloc) {
-						bloc.travaux.forEach(function (travail) {
-							if (parseInt(travail.motdepasse) === parseInt(this.motdepasse)) {
-								travail.retroaction = this.retroaction
-							}
-						}.bind(this))
-					}
-				}.bind(this))
-				const travaux = JSON.parse(JSON.stringify(this.travaux))
-				travaux.forEach(function (travail) {
-					if (parseInt(travail.motdepasse) === parseInt(this.motdepasse)) {
-						travail.retroaction = this.retroaction
-					}
-				}.bind(this))
-				const xhr = new XMLHttpRequest()
-				xhr.onload = function () {
-					if (xhr.readyState === xhr.DONE && xhr.status === 200) {
-						this.$parent.$parent.chargement = false
-						if (xhr.responseText === 'non_autorise') {
-							this.$parent.$parent.message = 'Vous n\'êtes pas autorisé à modifier ce parcours.'
-						} else if (xhr.responseText === 'parcours_modifie') {
-							this.blocs = blocs
-							this.travaux = travaux
-							this.motdepasse = ''
-							this.$parent.$parent.notification = 'Rétroaction enregistrée.'
-						}
-					} else {
-						this.$parent.$parent.chargement = false
-						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
-					}
-				}.bind(this)
-				xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_parcours.php', true)
-				xhr.setRequestHeader('Content-type', 'application/json')
-				const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), session: session }
-				xhr.send(JSON.stringify(json))
-			} else {
-				this.$parent.$parent.message = 'Veuillez ajouter du texte.'
+			if (this.retroaction === '') {
+				this.$parent.$parent.message = 'Veuillez ajouter un commentaire.'
+				return false
 			}
+			if (this.listeCriteres.length > 0) {
+				let criteresEvalues = 0
+				this.evaluation.forEach(function (item) {
+					if (item !== 0) {
+						criteresEvalues++
+					}
+				})
+				if (criteresEvalues !== this.listeCriteres.length) {
+					this.$parent.$parent.message = 'Veuillez compléter tous les critères.'
+					return false
+				}
+			}
+			this.$parent.$parent.chargement = true
+			const blocs = JSON.parse(JSON.stringify(this.blocs))
+			blocs.forEach(function (bloc) {
+				if (bloc.id === this.blocId) {
+					bloc.travaux.forEach(function (travail) {
+						if (parseInt(travail.motdepasse) === parseInt(this.motdepasse)) {
+							travail.retroaction = this.retroaction
+
+							travail.evaluation = this.evaluation
+						}
+					}.bind(this))
+				}
+			}.bind(this))
+			const travaux = JSON.parse(JSON.stringify(this.travaux))
+			travaux.forEach(function (travail) {
+				if (parseInt(travail.motdepasse) === parseInt(this.motdepasse)) {
+					travail.retroaction = this.retroaction
+					travail.evaluation = this.evaluation
+				}
+			}.bind(this))
+			const xhr = new XMLHttpRequest()
+			xhr.onload = function () {
+				if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+					this.$parent.$parent.chargement = false
+					if (xhr.responseText === 'non_autorise') {
+						this.$parent.$parent.message = 'Vous n\'êtes pas autorisé à modifier ce parcours.'
+					} else if (xhr.responseText === 'parcours_modifie') {
+						this.blocs = blocs
+						this.travaux = travaux
+						this.motdepasse = ''
+						this.$parent.$parent.notification = 'Rétroaction enregistrée.'
+					}
+				} else {
+					this.$parent.$parent.chargement = false
+					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+				}
+			}.bind(this)
+			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
+			xhr.setRequestHeader('Content-type', 'application/json')
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }) }
+			xhr.send(JSON.stringify(json))
 		},
 		annulerRetroaction () {
 			this.motdepasse = ''
 		},
 		fermerModaleTravaux () {
 			this.modale = ''
-			this.bloc = ''
+			this.blocId = ''
 			this.travaux = []
+			this.listeCriteres = []
+			this.retroaction = ''
+			this.evaluation = []
 			this.motdepasse = ''
 		},
+		debloquerEtape (id) {
+			const code = document.querySelector('#' + id + ' input[type="text"]').value
+			let etapeDebloquee = false
+			this.blocs.forEach(function (bloc) {
+				if (bloc.id === id && code === bloc.code) {
+					this.blocId = id
+					this.chargement = true
+					bloc.code = ''
+					etapeDebloquee = true
+					this.$nextTick(function () {
+						this.verifierTextes()
+					}.bind(this))
+					setTimeout(function () {
+						this.chargement = false
+						this.blocId = ''
+						this.$parent.$parent.notification = 'Étape débloquée.'
+					}.bind(this), 300)
+				}
+			}.bind(this))
+			if (etapeDebloquee === false) {
+				this.$parent.$parent.message = 'Code d\'accès incorrect.'
+			}
+		},
 		ouvrirModaleDepot (id) {
-			this.bloc = id
+			this.blocId = id
 			this.mode = '-'
 			this.modale = 'depot'
 		},
@@ -1393,6 +1637,7 @@ export default {
 			if (this.ressource === 'fichier' && this.fichier !== '') {
 				this.fichier = await this.televerserFichier()
 				if (this.fichier === 'erreur') {
+					this.fermerModaleDepot()
 					return false
 				}
 			}
@@ -1404,13 +1649,13 @@ export default {
 			const blocs = JSON.parse(JSON.stringify(this.blocs))
 			if (this.mode === 'deposer') {
 				blocs.forEach(function (bloc) {
-					if (bloc.id === this.bloc) {
+					if (bloc.id === this.blocId) {
 						bloc.travaux.push({ motdepasse: this.motdepasse, pseudo: this.pseudo, lien: this.lien, fichier: this.fichier, retroaction: '', date: date })
 					}
 				}.bind(this))
 			} else if (this.mode === 'afficher') {
 				blocs.forEach(function (bloc) {
-					if (bloc.id === this.bloc) {
+					if (bloc.id === this.blocId) {
 						bloc.travaux.forEach(function (travail) {
 							if (parseInt(travail.motdepasse) === parseInt(this.motdepasse)) {
 								travail.pseudo = this.pseudo
@@ -1440,12 +1685,10 @@ export default {
 					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 				}
 			}.bind(this)
-			xhr.open('POST', this.$parent.$parent.hote + '/inc/deposer_travail.php', true)
+			xhr.open('POST', this.$parent.$parent.hote + 'inc/deposer_travail.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, id: this.bloc, mode: this.mode, motdepasse: this.motdepasse, pseudo: this.pseudo, lien: this.lien, fichier: this.fichier, date: date, fichierasupprimer: fichierasupprimer }
+			const json = { parcours: this.id, id: this.blocId, mode: this.mode, motdepasse: this.motdepasse, pseudo: this.pseudo, lien: this.lien, fichier: this.fichier, date: date, fichierasupprimer: fichierasupprimer }
 			xhr.send(JSON.stringify(json))
-			/* xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-			xhr.send('parcours=' + this.id + '&id=' + this.bloc + '&mode=' + this.mode + '&motdepasse=' + this.motdepasse + '&pseudo=' + this.pseudo + '&lien=' + this.lien + '&fichier=' + this.fichier + '&date=' + date + '&fichierasupprimer=' + fichierasupprimer) */
 		},
 		verifier () {
 			if (this.motdepasse === '') {
@@ -1453,7 +1696,7 @@ export default {
 				return false
 			}
 			this.blocs.forEach(function (item) {
-				if (item.id === this.bloc) {
+				if (item.id === this.blocId) {
 					const travaux = item.travaux
 					let motdepasseExiste = false
 					travaux.forEach(function (travail) {
@@ -1469,6 +1712,12 @@ export default {
 								this.ressource = 'fichier'
 							}
 							this.retroaction = travail.retroaction
+							if (item.hasOwnProperty('listeCriteres')) {
+								this.listeCriteres = item.listeCriteres
+							}
+							if (travail.hasOwnProperty('evaluation')) {
+								this.evaluation = travail.evaluation
+							}
 							motdepasseExiste = true
 						}
 					}.bind(this))
@@ -1479,7 +1728,7 @@ export default {
 			}.bind(this))
 		},
 		fermerModaleDepot () {
-			this.bloc = ''
+			this.blocId = ''
 			this.pseudo = ''
 			this.motdepasse = ''
 			this.lien = ''
@@ -1488,6 +1737,8 @@ export default {
 			this.mode = ''
 			this.ressource = '-'
 			this.retroaction = ''
+			this.listeCriteres = []
+			this.evaluation = []
 			this.modale = ''
 		},
 		ouvrirModaleParcours () {
@@ -1510,12 +1761,9 @@ export default {
 			this.nouveaunom = ''
 		},
 		modifierNomParcours () {
-			if (this.nouveaunom !== '') {
+			if (this.nouveaunom !== '' && this.nom !== this.nouveaunom) {
 				this.$parent.$parent.chargement = true
-				let session = ''
-				if (localStorage.getItem('session')) {
-					session = localStorage.getItem('session')
-				}
+				const nom = this.nouveaunom
 				const xhr = new XMLHttpRequest()
 				xhr.onload = function () {
 					if (xhr.readyState === xhr.DONE && xhr.status === 200) {
@@ -1526,7 +1774,7 @@ export default {
 						} else if (xhr.responseText === 'non_autorise') {
 							this.$parent.$parent.message = 'Vous n\'êtes pas autorisé à modifier ce parcours.'
 						} else if (xhr.responseText === 'nom_modifie') {
-							this.nom = this.nouveaunom
+							this.nom = nom
 							this.$parent.$parent.notification = 'Nom modifié.'
 							document.title = this.nom + ' - Digisteps by La Digitale'
 						}
@@ -1536,13 +1784,11 @@ export default {
 						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 					}
 				}.bind(this)
-				xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_nom_parcours.php', true)
+				xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_nom_parcours.php', true)
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-				xhr.send('parcours=' + this.id + '&nouveaunom=' + this.nouveaunom + '&session=' + session)
-			} else {
-				if (this.nouveaunom === '') {
-					this.$parent.$parent.message = 'Veuillez compléter le champ «&nbsp;Nouveau nom&nbsp;».'
-				}
+				xhr.send('parcours=' + this.id + '&nouveaunom=' + nom)
+			} else if (this.nouveaunom === '') {
+				this.$parent.$parent.message = 'Veuillez compléter le champ «&nbsp;Nouveau nom&nbsp;».'
 			}
 		},
 		ouvrirModaleAccesParcours () {
@@ -1558,10 +1804,6 @@ export default {
 		modifierAccesParcours () {
 			if (this.question !== '' && this.reponse !== '' && this.nouvellequestion !== '' && this.nouvellereponse !== '') {
 				this.$parent.$parent.chargement = true
-				let session = ''
-				if (localStorage.getItem('session')) {
-					session = localStorage.getItem('session')
-				}
 				const xhr = new XMLHttpRequest()
 				xhr.onload = function () {
 					if (xhr.readyState === xhr.DONE && xhr.status === 200) {
@@ -1580,9 +1822,9 @@ export default {
 						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 					}
 				}.bind(this)
-				xhr.open('POST', this.$parent.$parent.hote + '/inc/modifier_acces_parcours.php', true)
+				xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_acces_parcours.php', true)
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-				xhr.send('parcours=' + this.id + '&question=' + this.question + '&reponse=' + this.reponse + '&nouvellequestion=' + this.nouvellequestion + '&nouvellereponse=' + this.nouvellereponse + '&session=' + session)
+				xhr.send('parcours=' + this.id + '&question=' + this.question + '&reponse=' + this.reponse + '&nouvellequestion=' + this.nouvellequestion + '&nouvellereponse=' + this.nouvellereponse)
 			} else {
 				if (this.question === '') {
 					this.$parent.$parent.message = 'Veuillez sélectionner votre question secrète actuelle.'
@@ -1606,10 +1848,6 @@ export default {
 		debloquerParcours () {
 			if (this.question !== '' && this.reponse !== '') {
 				this.$parent.$parent.chargement = true
-				let session = ''
-				if (localStorage.getItem('session')) {
-					session = localStorage.getItem('session')
-				}
 				const xhr = new XMLHttpRequest()
 				xhr.onload = function () {
 					if (xhr.readyState === xhr.DONE && xhr.status === 200) {
@@ -1619,10 +1857,12 @@ export default {
 							this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 						} else if (xhr.responseText === 'non_autorise') {
 							this.$parent.$parent.message = 'La question et la réponse secrètes ne sont pas correctes.'
-						} else if (xhr.responseText !== '') {
-							localStorage.setItem('session', xhr.responseText)
+						} else if (xhr.responseText === 'parcours_debloque') {
 							this.admin = true
 							this.$parent.$parent.notification = 'Parcours débloqué.'
+							this.$nextTick(function () {
+								this.verifierTextes()
+							})
 						}
 					} else {
 						this.$parent.$parent.chargement = false
@@ -1630,9 +1870,9 @@ export default {
 						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 					}
 				}.bind(this)
-				xhr.open('POST', this.$parent.$parent.hote + '/inc/ouvrir_parcours.php', true)
+				xhr.open('POST', this.$parent.$parent.hote + 'inc/ouvrir_parcours.php', true)
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-				xhr.send('parcours=' + this.id + '&question=' + this.question + '&reponse=' + this.reponse + '&session=' + session)
+				xhr.send('parcours=' + this.id + '&question=' + this.question + '&reponse=' + this.reponse)
 			} else {
 				if (this.question === '') {
 					this.$parent.$parent.message = 'Veuillez sélectionner une question secrète.'
@@ -1643,10 +1883,6 @@ export default {
 		},
 		terminerSession () {
 			this.$parent.$parent.chargement = true
-			let session = ''
-			if (localStorage.getItem('session')) {
-				session = localStorage.getItem('session')
-			}
 			const xhr = new XMLHttpRequest()
 			xhr.onload = function () {
 				if (xhr.readyState === xhr.DONE && xhr.status === 200) {
@@ -1654,8 +1890,10 @@ export default {
 					if (xhr.responseText === 'session_terminee') {
 						this.fermerModaleParcours()
 						this.admin = false
-						localStorage.removeItem('session')
 						this.$parent.$parent.notification = 'Session terminée.'
+						this.$nextTick(function () {
+							this.verifierTextes()
+						})
 					}
 				} else {
 					this.$parent.$parent.chargement = false
@@ -1663,20 +1901,16 @@ export default {
 					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 				}
 			}.bind(this)
-			xhr.open('POST', this.$parent.$parent.hote + '/inc/terminer_session_parcours.php', true)
+			xhr.open('POST', this.$parent.$parent.hote + 'inc/terminer_session_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-			xhr.send('session=' + session)
+			xhr.send('parcours=' + this.id)
 		},
 		afficherSupprimerParcours () {
 			this.modale = 'supprimer-parcours'
 		},
 		supprimerParcours () {
 			this.modale = ''
-			this.$parent.$parent.chargement = false
-			let session = ''
-			if (localStorage.getItem('session')) {
-				session = localStorage.getItem('session')
-			}
+			this.$parent.$parent.chargement = true
 			const xhr = new XMLHttpRequest()
 			xhr.onload = function () {
 				if (xhr.readyState === xhr.DONE && xhr.status === 200) {
@@ -1693,9 +1927,9 @@ export default {
 					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 				}
 			}.bind(this)
-			xhr.open('POST', this.$parent.$parent.hote + '/inc/supprimer_parcours.php', true)
+			xhr.open('POST', this.$parent.$parent.hote + 'inc/supprimer_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-			xhr.send('parcours=' + this.id + '&session=' + session)
+			xhr.send('parcours=' + this.id)
 		},
 		eclaircirCouleur (hex) {
 			const r = parseInt(hex.slice(1, 3), 16)
@@ -1863,6 +2097,16 @@ section {
 	width: 100%;
 }
 
+#blocs .bloc.sortable-drag {
+	opacity: 1!important;
+}
+
+#blocs .bloc.sortable-chosen.sortable-ghost {
+	opacity: 0.5;
+	border-style: dashed;
+	outline: none!important;
+}
+
 #blocs.admin .bloc {
 	user-select: none;
 	cursor: move;
@@ -1912,6 +2156,14 @@ section {
 	max-width: 170px;
 }
 
+#blocs .bloc .vignette .cadenas {
+	position: absolute;
+	font-size: 48px;
+	bottom: -12px;
+	left: -18px;
+	line-height: 1;
+}
+
 #blocs .bloc .duree {
 	position: absolute;
 	top: -12px;
@@ -1929,6 +2181,7 @@ section {
 	font-size: 18px;
 	padding-bottom: 10px;
 	border-bottom: 1px dashed transparent;
+	line-height: 1.4;
 }
 
 #blocs .bloc .texte {
@@ -2001,9 +2254,40 @@ section {
 	margin-top: 15px;
 }
 
+#blocs .bloc.verrouille .titre {
+	margin-bottom: 15px;
+}
+
+#blocs .bloc.verrouille label {
+	display: block;
+	width: 100%;
+	font-weight: 700;
+	font-size: 14px;
+	margin-bottom: 10px;
+	user-select: none;
+}
+
+#blocs .bloc.verrouille input[type="text"] {
+	display: block;
+    width: 100%;
+    font-size: 16px;
+    border: 2px solid transparent;
+    border-radius: 4px;
+	background: #fff;
+    padding: 7px 15px;
+    line-height: 1.5;
+    margin: 0 auto 15px;
+    text-align: left;
+}
+
+#blocs .bloc.verrouille input[type="text"]:focus {
+	border-color: #001d1d!important;
+}
+
 #blocs .bloc .action {
 	display: flex;
 	justify-content: flex-end;
+	align-items: center;
 	margin-top: 8px;
 }
 
@@ -2029,6 +2313,22 @@ section {
 	text-overflow: ellipsis;
 }
 
+#blocs .bloc .action .bouton.icone {
+    font-size: 24px;
+    font-weight: 400;
+	letter-spacing: 0;
+	text-indent: 0;
+}
+
+#blocs .bloc.verrouille .action .bouton.icone {
+	padding: 0;
+    font-size: 36px;
+    border: none;
+    height: auto;
+    line-height: 1;
+	background: transparent;
+}
+
 #blocs .bloc .action .bouton + .bouton {
 	margin-left: 15px;
 }
@@ -2039,6 +2339,7 @@ section {
 }
 
 #blocs .bloc .action .bouton.travaux {
+	color: #001d1d!important; 
 	border-color: #001d1d!important;
 }
 
@@ -2207,13 +2508,40 @@ section {
 }
 
 #travaux .travail .bouton {
+	height: 34px;
+	line-height: 34px;
+}
+
+#travaux .travail .bouton.icone {
+	font-size: 24px;
+	font-weight: 400;
+	letter-spacing: 0;
+	text-indent: 0;
+}
+
+#travaux .travail .bouton:not(.icone) {
 	font-size: 11px;
-	height: 30px;
-	line-height: 30px;
 }
 
 #travaux .travail .bouton + .bouton {
 	margin-left: 15px;
+}
+
+#liste-criteres {
+	padding: 10px 15px;
+	border-top: 1px solid #ddd;
+}
+
+#liste-criteres label {
+	margin-bottom: 5px;
+}
+
+#liste-criteres .etoiles {
+	margin-bottom: 10px;
+}
+
+#liste-criteres .etoiles:last-of-type {
+	margin-bottom: 0;
 }
 
 #travail.deposer,
@@ -2249,7 +2577,7 @@ section {
 	margin-bottom: 10px;
 }
 
-#travail #retroaction {
+#commentaire {
 	display: block;
     width: 100%;
     font-size: 16px;
@@ -2257,6 +2585,10 @@ section {
     border-radius: 4px;
     padding: 7px 15px;
     line-height: 1.5;
+}
+
+#etoiles {
+	margin-top: 20px;
 }
 
 #texte {
@@ -2305,25 +2637,88 @@ section {
 	margin-left: 20px;
 }
 
+#verrouillage,
+#criteres,
 #depot {
 	display: flex;
 	margin-bottom: 20px;
 }
 
+#verrouillage .label,
+#criteres .label,
 #depot .label {
 	display: flex;
 }
 
+#verrouillage .label:first-child,
+#criteres .label:first-child,
 #depot .label:first-child {
 	margin-right: 20px;
 }
 
+#verrouillage .label input,
+#criteres .label input,
 #depot .label input {
 	margin-right: 7px;
 }
 
+#verrouillage .label label,
+#criteres .label label,
 #depot .label label {
 	margin-bottom: 0;
+}
+
+#evaluation {
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+}
+
+#evaluation label {
+	display: inline-flex;
+	width: calc(50% - 10px);
+}
+
+#evaluation label:first-child {
+	margin-right: 20px;
+}
+
+#evaluation .critere {
+	display: flex;
+	width: 100%;
+}
+
+#evaluation .critere select,
+#evaluation .critere input {
+	display: inline-flex;
+	width: calc(50% - 10px);
+	margin-bottom: 10px;
+}
+
+#evaluation .critere input {
+	margin-right: 20px;
+}
+
+#evaluation .actions span {
+	display: inline-block;
+	width: 34px;
+	height: 34px;
+	color: #00ced1;
+	font-size: 34px;
+	cursor: pointer;
+	margin-bottom: 20px;
+	line-height: 1;
+	user-select: none;
+}
+
+#evaluation .actions span:hover,
+#evaluation .actions span:active {
+	opacity: 0.5;
+}
+
+#evaluation .actions span:first-child {
+	color: #aaa;
+	margin-right: 15px;
 }
 
 #vignette {
@@ -2438,6 +2833,24 @@ section {
 	background: #394b62;
 }
 
+.modale .etoiles {
+	display: flex;
+	margin-bottom: 20px;
+    line-height: 1;
+}
+
+.modale .etoiles .etoile {
+	font-size: 24px;
+	width: 24px;
+	color: #fdcc33;
+	cursor: pointer;
+	user-select: none;
+}
+
+.modale .etoiles:last-of-type {
+	margin-bottom: 0;
+}
+
 .modale .bouton.large {
 	width: 100%;
 	text-align: center;
@@ -2478,13 +2891,12 @@ section {
 
 <style>
 #blocs .bloc .lire {
-    font-size: 12px;
+	display: inline-block;
+    font-size: 13px;
     padding: 4px 10px;
     border: 1px solid;
-    border-radius: 5px;
 	cursor: pointer;
 	margin-top: 8px;
-	margin-bottom: 5px;
 	user-select: none;
 	transition: all .1s ease-in;
 }
@@ -2566,6 +2978,12 @@ section {
 		max-width: 80px!important;
 	}
 
+	#blocs .bloc .vignette .cadenas {
+		font-size: 36px!important;
+		bottom: -10px!important;
+		left: -13px!important;
+	}
+
 	#blocs .bloc .duree {
 		font-size: 11px!important;
 	}
@@ -2582,15 +3000,8 @@ section {
 		font-size: 15px!important;
 	}
 
-	#blocs .bloc .action .bouton + .bouton {
-		margin-top: 10px!important;
-		margin-left: 0!important;
-	}
-
-	#blocs .bloc .action .bouton {
-		font-size: 12px!important;
-		width: 100%!important;
-		text-align: center!important;
+	#blocs .bloc .action .bouton.icone {
+		padding: 0 10px!important;
 	}
 
 	#blocs .bloc .action {
@@ -2617,6 +3028,16 @@ section {
 	#conteneur-parcours,
 	#conteneur-header {
 		width: 970px;
+	}
+}
+
+@media screen and (max-width: 320px) {
+	#blocs .bloc .action .bouton.icone {
+		padding: 0 5px!important;
+	}
+
+	#blocs .bloc .action .bouton + .bouton {
+		margin-left: 10px!important;
 	}
 }
 </style>
