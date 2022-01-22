@@ -1,6 +1,6 @@
 <template>
 	<main>
-		<div id="conteneur-chargement" :class="{'chargement-blocs': chargementBlocs}" v-if="chargement || chargementBlocs">
+		<div id="conteneur-chargement" :class="{'chargement-parcours': chargementParcours, 'chargement-blocs': chargementBlocs}" v-if="chargement || chargementBlocs || chargementParcours">
 			<div id="chargement">
 				<div class="spinner"><div /><div /><div /><div /><div /><div /><div /><div /><div /><div /><div /><div /></div>
 			</div>
@@ -29,6 +29,7 @@ export default {
 			hote: '',
 			chargement: true,
 			chargementBlocs: false,
+			chargementParcours: true,
 			message: '',
 			notification: ''
 		}
@@ -50,11 +51,7 @@ export default {
 		}
 	},
 	created () {
-		if (process.env.NODE_ENV !== 'production') {
-			this.hote = 'http://localhost:8000'
-		} else {
-			this.hote = window.location.href.split('#')[0]
-		}
+		this.hote = window.location.href.split('#')[0]
 	}
 }
 </script>
