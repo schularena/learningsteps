@@ -61,6 +61,9 @@ export default {
 			hub: false
 		}
 	},
+	created () {
+		this.$parent.$parent.chargementParcours = false
+	},
 	mounted () {
 		setTimeout(function () {
 			this.$parent.$parent.chargement = false
@@ -85,9 +88,7 @@ export default {
 						this.$parent.$parent.chargement = false
 						this.fermerModaleParcours()
 						if (xhr.responseText !== 'erreur') {
-							const donnees = JSON.parse(xhr.responseText)
-							localStorage.setItem('session', donnees.session)
-							this.$router.push('/s/' + donnees.url)
+							this.$router.push('/s/' + xhr.responseText)
 						} else {
 							this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 						}
@@ -97,7 +98,7 @@ export default {
 						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
 					}
 				}.bind(this)
-				xhr.open('POST', this.$parent.$parent.hote + '/inc/creer_parcours.php', true)
+				xhr.open('POST', this.$parent.$parent.hote + 'inc/creer_parcours.php', true)
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
 				xhr.send('nom=' + this.nom + '&question=' + this.question + '&reponse=' + this.reponse)
 			} else {
