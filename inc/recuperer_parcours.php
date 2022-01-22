@@ -3,16 +3,9 @@
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Max-Age: 1000');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 
-if (!empty($_POST['session']) && $_POST['session'] !== '') {
-	session_id($_POST['session']);
-}
 session_start();
-$reponse = '';
-if (isset($_SESSION['reponse'])) {
-	$reponse = $_SESSION['reponse'];
-}
 
 if (!empty($_POST['id'])) {
 	try {
@@ -23,7 +16,11 @@ if (!empty($_POST['id'])) {
 		echo 'Erreur lors de la connexion à la base de données : ' . $e->getMessage();
 		die();
 	}
+	$reponse = '';
 	$id = $_POST['id'];
+	if (isset($_SESSION['digisteps'][$id]['reponse'])) {
+		$reponse = $_SESSION['digisteps'][$id]['reponse'];
+	}
 	$stmt = $db->prepare('SELECT * FROM digisteps_parcours WHERE url = :url');
 	if ($stmt->execute(array('url' => $id))) {
 		$parcours = $stmt->fetchAll();

@@ -3,16 +3,13 @@
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Max-Age: 1000');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 
-if (!empty($_POST['session']) && $_POST['session'] !== '') {
-	session_id($_POST['session']);
-}
 session_start();
 
-if (!empty($_POST['session'])) {
-	$_SESSION = array();
-	session_destroy();
+if (!empty($_POST['parcours'])) {
+	$parcours = $_POST['parcours'];
+	unset($_SESSION['digisteps'][$parcours]['reponse']);
 	echo 'session_terminee';
 	exit();
 } else {

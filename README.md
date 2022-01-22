@@ -22,7 +22,7 @@ npm run build
 
 ### Serveur PHP nécessaire pour l'API
 ```
-php -S localhost:8000 (pour le développement uniquement)
+php -S 127.0.0.1:8000 (pour le développement uniquement)
 ```
 
 ### Production
