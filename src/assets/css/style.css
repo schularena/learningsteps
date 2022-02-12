@@ -305,6 +305,9 @@ main {
 	text-indent: 1px;
 	user-select: none;
 	transition: all ease-in 0.1s;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 #ajouter {
