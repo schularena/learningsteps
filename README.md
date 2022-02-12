@@ -30,3 +30,7 @@ Le dossier dist peut être déployé directement sur un serveur PHP avec l'exten
 
 ### Démo
 https://ladigitale.dev/digisteps/
+
+### Soutien
+https://opencollective.com/ladigitale
+
