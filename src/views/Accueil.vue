@@ -1,6 +1,10 @@
 <template>
 	<div id="page">
 		<div id="accueil" :style="{'background-image': 'url(./static/img/digisteps.jpg)'}">
+			<div id="langues">
+				<span class="bouton" role="button" tabindex="0" :class="{'selectionne': $parent.$parent.langue === 'fr'}" @click="modifierLangue('fr')">FR</span>
+				<span class="bouton" role="button" tabindex="0" :class="{'selectionne': $parent.$parent.langue === 'en'}" @click="modifierLangue('en')">EN</span>
+			</div>
 			<div id="masque" />
 			<div id="conteneur">
 				<div id="contenu">
@@ -8,34 +12,34 @@
 						<span>Digisteps</span> <span>by La Digitale</span>
 					</h1>
 					<div>
-						<p><strong>Digisteps</strong> permet de créer des <strong>parcours pédagogiques</strong> en ligne.</p>
-						<span id="bouton" role="button" tabindex="0" @click="ouvrirModaleParcours">Créer un parcours</span>
+						<p v-html="$t('slogan')" />
+						<span id="bouton" role="button" tabindex="0" @click="ouvrirModaleParcours">{{ $t('creerParcours') }}</span>
 					</div>
 				</div>
 				<div id="credits">
-					<p><a href="https://opencollective.com/ladigitale" target="_blank" rel="noreferrer">Je souhaite apporter mon soutien ❤️.</a></p>
-					<p>{{ new Date().getFullYear() }} - <a href="https://ladigitale.dev" target="_blank" rel="noreferrer">La Digitale</a> - <a href="https://gitlab.com/ladigitale/digisteps" target="_blank" rel="noreferrer">Code source</a> - <span class="hub" @click="ouvrirHub"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#001d1d" width="36px" height="36px"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg></span></p>
+					<p><a href="https://opencollective.com/ladigitale" target="_blank" rel="noreferrer">{{ $t('soutien') }}</a></p>
+					<p>{{ new Date().getFullYear() }} - <a href="https://ladigitale.dev" target="_blank" rel="noreferrer">La Digitale</a> - <a href="https://gitlab.com/ladigitale/digisteps" target="_blank" rel="noreferrer">{{ $t('codeSource') }}</a> - <span class="hub" @click="ouvrirHub"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#001d1d" width="36px" height="36px"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg></span></p>
 				</div>
 			</div>
 		</div>
 		<div class="conteneur-modale" v-if="modale === 'parcours'">
 			<div class="modale">
 				<header>
-					<span class="titre">Nouveau parcours pédagogique</span>
+					<span class="titre">{{ $t('nouveauParcours') }}</span>
 					<span class="fermer" role="button" tabindex="0" @click="fermerModaleParcours"><i class="material-icons">close</i></span>
 				</header>
 				<div class="conteneur">
 					<div class="contenu">
-						<label>Nom du parcours</label>
+						<label>{{ $t('nomParcours') }}</label>
 						<input type="text" :value="nom" @input="nom = $event.target.value">
-						<label>Question secrète</label>
+						<label>{{ $t('questionSecrete') }}</label>
 						<select :value="question" @change="question = $event.target.value">
-							<option v-for="(item, index) in questions" :key="'option_' + index">{{ item }}</option>
+							<option v-for="(item, index) in questions" :value="item" :key="'option_' + index">{{ $t(item) }}</option>
 						</select>
-						<label>Réponse secrète (pour édition ultérieure)</label>
+						<label>{{ $t('reponseSecreteEdition') }}</label>
 						<input type="text" :value="reponse" @input="reponse = $event.target.value" @keydown.enter="creerParcours">
 						<div class="actions">
-							<span class="bouton" role="button" tabindex="0" @click="creerParcours">Créer</span>
+							<span class="bouton" role="button" tabindex="0" @click="creerParcours">{{ $t('creer') }}</span>
 						</div>
 					</div>
 				</div>
@@ -56,7 +60,7 @@ export default {
 			modale: '',
 			nom: '',
 			question: '',
-			questions: ['Quel est mon mot préféré ?', 'Quel est mon film préféré ?', 'Quelle est ma chanson préférée ?', 'Quel est le prénom de ma mère ?', 'Quel est le prénom de mon père ?', 'Quel est le nom de ma rue ?', 'Quel est le nom de mon employeur ?', 'Quel est le nom de mon animal de compagnie ?'],
+			questions: ['motPrefere', 'filmPrefere', 'chansonPreferee', 'prenomMere', 'prenomPere', 'nomRue', 'nomEmployeur', 'nomAnimal'],
 			reponse: '',
 			hub: false
 		}
@@ -70,6 +74,12 @@ export default {
 		}.bind(this), 300)
 	},
 	methods: {
+		modifierLangue (langue) {
+			this.$root.$i18n.locale = langue
+			this.$parent.$parent.langue = langue
+			document.getElementsByTagName('html')[0].setAttribute('lang', langue)
+			this.$parent.$parent.notification = this.$t('langueModifiee')
+		},
 		ouvrirModaleParcours () {
 			this.modale = 'parcours'
 		},
@@ -90,25 +100,23 @@ export default {
 						if (xhr.responseText !== 'erreur') {
 							this.$router.push('/s/' + xhr.responseText)
 						} else {
-							this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+							this.$parent.$parent.message = this.$t('erreurServeur')
 						}
 					} else {
 						this.$parent.$parent.chargement = false
 						this.fermerModaleParcours()
-						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+						this.$parent.$parent.message = this.$t('erreurServeur')
 					}
 				}.bind(this)
 				xhr.open('POST', this.$parent.$parent.hote + 'inc/creer_parcours.php', true)
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
 				xhr.send('nom=' + this.nom + '&question=' + this.question + '&reponse=' + this.reponse)
-			} else {
-				if (this.nom === '') {
-					this.$parent.$parent.message = 'Veuillez complétez le champ «&nbsp;Nom du parcours&nbsp;».'
-				} else if (this.question === '') {
-					this.$parent.$parent.message = 'Veuillez sélectionner une question secrète.'
-				} else if (this.reponse === '') {
-					this.$parent.$parent.message = 'Veuillez complétez le champ «&nbsp;Réponse secrète&nbsp;».'
-				}
+			} else if (this.nom === '') {
+				this.$parent.$parent.message = this.$t('remplirTitre')
+			} else if (this.question === '') {
+				this.$parent.$parent.message = this.$t('selectionnerQuestionSecrete')
+			} else if (this.reponse === '') {
+				this.$parent.$parent.message = this.$t('remplirReponseSecrete')
 			}
 		},
 		ouvrirHub () {
@@ -132,6 +140,35 @@ export default {
 	background-size: cover;
 	background-position: center;
 	background-repeat: no-repeat;
+}
+
+#langues {
+	position: fixed;
+	display: flex;
+	top: 10px;
+	right: 5px;
+	z-index: 10;
+}
+
+#langues span {
+    display: flex;
+    justify-content: center;
+	align-items: center;
+	font-size: 14px;
+    width: 30px;
+	height: 30px;
+	background: #fff;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    margin-right: 10px;
+	cursor: pointer;
+}
+
+#langues span.selectionne {
+    background: #242f3d;
+    color: #fff;
+    border: 1px solid #222;
+    cursor: default;
 }
 
 #masque {
@@ -324,6 +361,20 @@ export default {
 @media screen and (max-width: 1023px) and (orientation: landscape) {
 	#contenu {
 		padding: 7em 1em 3.5em;
+	}
+}
+
+@media screen and (max-width: 767px) {
+	#langues {
+		top: 9px;
+		right: 4px;
+	}
+
+	#langues span {
+		font-size: 12px;
+		width: 27px;
+		height: 27px;
+		margin-right: 9px;
 	}
 }
 

@@ -420,13 +420,23 @@ main {
 	-webkit-touch-callout: default!important;
 }
 
-.contenu-editeur:empty:before {
+.contenu-editeur:lang(fr):empty:before {
 	content: 'Ajouter du texte...';
 	color: #aaa;
 }
 
-#travaux #retroaction .contenu-editeur:empty:before {
+.contenu-editeur:lang(en):empty:before {
+	content: 'Add text...';
+	color: #aaa;
+}
+
+#travaux #retroaction .contenu-editeur:lang(fr):empty:before {
 	content: 'Ajouter un commentaire...';
+	color: #aaa;
+}
+
+#travaux #retroaction .contenu-editeur:lang(en):empty:before {
+	content: 'Add a comment...';
 	color: #aaa;
 }
 

@@ -31,7 +31,8 @@ export default {
 			chargementBlocs: false,
 			chargementParcours: true,
 			message: '',
-			notification: ''
+			notification: '',
+			langue: 'fr'
 		}
 	},
 	watch: {
@@ -52,6 +53,15 @@ export default {
 	},
 	created () {
 		this.hote = window.location.href.split('#')[0]
+	},
+	mounted () {
+		const langue = navigator.language
+		const langues = ['fr', 'en']
+		if (langues.includes(langue.substring(0, 2)) === true) {
+			this.$root.$i18n.locale = langue.substring(0, 2)
+			this.langue = langue.substring(0, 2)
+			document.getElementsByTagName('html')[0].setAttribute('lang', this.langue)
+		}
 	}
 }
 </script>

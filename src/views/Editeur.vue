@@ -3,7 +3,7 @@
 		<div id="parcours">
 			<header>
 				<div id="conteneur-header">
-					<a id="conteneur-logo" :href="definirRacine()" title="Accueil">
+					<a id="conteneur-logo" :href="definirRacine()" :title="$t('accueil')">
 						<span id="logo"></span>
 					</a>
 					<span id="titre">{{ nom }}</span>
@@ -21,25 +21,25 @@
 
 			<div id="menu-partager" v-show="menu === 'partager'" :style="{'left': position + 'px'}">
 				<div id="conteneur-partager">
-					<label>Lien et code QR&nbsp;:</label>
+					<label>{{ $t('lienEtCodeQR') }}</label>
 					<div id="copier-lien" class="copier">
 						<input type="text" disabled :value="definirRacine() + '#/s/' + id">
-						<span class="icone lien" role="button" tabindex="0" title="Copier le lien"><i class="material-icons">content_copy</i></span>
-						<span class="icone codeqr" role="button" tabindex="0" title="Afficher le code QR" @click="modale = 'code-qr'"><i class="material-icons">qr_code</i></span>
+						<span class="icone lien" role="button" tabindex="0" :title="$t('copierLien')"><i class="material-icons">content_copy</i></span>
+						<span class="icone codeqr" role="button" tabindex="0" :title="$t('afficherCodeQR')" @click="modale = 'code-qr'"><i class="material-icons">qr_code</i></span>
 					</div>
-					<label>Code d'intégration&nbsp;:</label>
+					<label>{{ $t('codeIntegration') }}</label>
 					<div id="copier-iframe" class="copier">
 						<input type="text" disabled :value="'<iframe src=&quot;' + definirRacine() + '#/s/' + id + '&quot; allowfullscreen frameborder=&quot;0&quot; width=&quot;100%&quot; height=&quot;500&quot;></iframe>'">
-						<span class="icone" role="button" tabindex="0" title="Copier le code d\'intégration"><i class="material-icons">content_copy</i></span>
+						<span class="icone" role="button" tabindex="0" :title="$t('copierCode')"><i class="material-icons">content_copy</i></span>
 					</div>
-					<p class="credits">Créé avec <a href="https://ladigitale.dev/digisteps/" target="_blank" rel="noreferrer"><u>Digisteps by La Digitale</u></a></p>
+					<p class="credits">{{ $t('creeAvec') }}<a href="https://ladigitale.dev/digisteps/" target="_blank" rel="noreferrer"><u>Digisteps by La Digitale</u></a></p>
 				</div>
 			</div>
 
 			<section>
 				<div id="conteneur-parcours">
 					<div id="actions" v-if="admin">
-						<span id="ajouter" class="bouton" role="button" tabindex="0" @click="ouvrirModaleBloc('creation', '')">Ajouter une étape</span>
+						<span id="ajouter" class="bouton" role="button" tabindex="0" @click="ouvrirModaleBloc('creation', '')">{{ $t('ajouterEtape') }}</span>
 					</div>
 					<draggable id="blocs" class="admin" v-model="blocs" :animation="250" :sort="true" :swap-threshold="0.5" :force-fallback="true" :fallback-tolerance="10" filter=".statique, .lire" draggable=".bloc" @end="modifierPositionBloc" v-if="blocs.length > 0 && admin">
 						<template v-for="(bloc, indexBloc) in blocs" :key="'bloc_' + indexBloc">
@@ -49,10 +49,10 @@
 									<span class="texte" v-if="bloc.texte !== ''" v-html="bloc.texte" />
 								</div>
 								<div class="actions statique">
-									<span @click="modifierVisibiliteBloc(bloc.id)" title="Masquer" v-if="bloc.visibilite === true"><i class="material-icons">visibility</i></span>
-									<span @click="modifierVisibiliteBloc(bloc.id)" title="Afficher" v-else><i class="material-icons">visibility_off</i></span>
-									<span @click="ouvrirModaleBloc('edition', bloc)" title="Éditer"><i class="material-icons">edit</i></span>
-									<span @click="afficherSupprimerBloc(bloc.id)" title="Supprimer"><i class="material-icons">delete</i></span>
+									<span @click="modifierVisibiliteBloc(bloc.id)" :title="$t('masquer')" v-if="bloc.visibilite === true"><i class="material-icons">visibility</i></span>
+									<span @click="modifierVisibiliteBloc(bloc.id)" :title="$t('afficher')" v-else><i class="material-icons">visibility_off</i></span>
+									<span @click="ouvrirModaleBloc('edition', bloc)" :title="$t('editer')"><i class="material-icons">edit</i></span>
+									<span @click="afficherSupprimerBloc(bloc.id)" :title="$t('supprimer')"><i class="material-icons">delete</i></span>
 								</div>
 							</article>
 							<article :id="bloc.id" class="bloc" :class="{'invisible': bloc.visibilite === false}" :style="{'background': eclaircirCouleur(bloc.couleur)}" v-else>
@@ -72,17 +72,17 @@
 									<span class="lieu" v-if="bloc.lieu !== '' && bloc.lieu.includes('http') === false"><i class="material-icons">place</i><a :href="'https://www.openstreetmap.org/search?query=' + bloc.lieu" target="_blank">{{ bloc.lieu }}</a></span>
 									<span class="lieu" v-else-if="bloc.lieu !== '' && bloc.lieu.includes('http') === true"><i class="material-icons">voice_chat</i><a :href="bloc.lieu" target="_blank">{{ definirDomaine(bloc.lieu) }}</a></span>
 									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== '' || (bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui' && bloc.hasOwnProperty('travaux') === true && bloc.travaux.length > 0) || (bloc.hasOwnProperty('listeCriteres') === true && bloc.listeCriteres.length > 0)">
-										<a class="bouton icone" :href="bloc.lien" target="_blank" title="Ouvrir le lien" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-if="bloc.lien !== ''"><i class="material-icons">open_in_new</i></a>
-										<a class="bouton icone" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" title="Télécharger le fichier" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-else-if="bloc.fichier !== ''"><i class="material-icons">get_app</i></a>
+										<a class="bouton icone" :href="bloc.lien" target="_blank" :title="$t('ouvrirLien')" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-if="bloc.lien !== ''"><i class="material-icons">open_in_new</i></a>
+										<a class="bouton icone" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" :title="$t('telechargerFichier')" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-else-if="bloc.fichier !== ''"><i class="material-icons">get_app</i></a>
 										<span class="bouton icone" role="button" tabindex="0" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-if="bloc.hasOwnProperty('listeCriteres') === true && bloc.listeCriteres.length > 0" @click="ouvrirModaleCriteres(bloc.listeCriteres)"><i class="material-icons">fact_check</i></span>
-										<span class="bouton icone travaux" role="button" tabindex="0" title="Afficher les travaux" :style="{'border-color': bloc.couleur}" v-if="bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui' && bloc.hasOwnProperty('travaux') === true && bloc.travaux.length > 0" @click="ouvrirModaleTravaux(bloc)"><i class="material-icons">send</i></span>
+										<span class="bouton icone travaux" role="button" tabindex="0" :title="$t('afficherTravaux')" :style="{'border-color': bloc.couleur}" v-if="bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui' && bloc.hasOwnProperty('travaux') === true && bloc.travaux.length > 0" @click="ouvrirModaleTravaux(bloc)"><i class="material-icons">send</i></span>
 									</div>
 								</div>
 								<div class="actions statique">
-									<span @click="modifierVisibiliteBloc(bloc.id)" title="Masquer" v-if="bloc.visibilite === true"><i class="material-icons">visibility</i></span>
-									<span @click="modifierVisibiliteBloc(bloc.id)" title="Afficher" v-else><i class="material-icons">visibility_off</i></span>
-									<span @click="ouvrirModaleBloc('edition', bloc)" title="Éditer"><i class="material-icons">edit</i></span>
-									<span @click="afficherSupprimerBloc(bloc.id)" title="Supprimer"><i class="material-icons">delete</i></span>
+									<span @click="modifierVisibiliteBloc(bloc.id)" :title="$t('masquer')" v-if="bloc.visibilite === true"><i class="material-icons">visibility</i></span>
+									<span @click="modifierVisibiliteBloc(bloc.id)" :title="$t('afficher')" v-else><i class="material-icons">visibility_off</i></span>
+									<span @click="ouvrirModaleBloc('edition', bloc)" :title="$t('editer')"><i class="material-icons">edit</i></span>
+									<span @click="afficherSupprimerBloc(bloc.id)" :title="$t('supprimer')"><i class="material-icons">delete</i></span>
 								</div>
 							</article>
 						</template>
@@ -119,18 +119,18 @@
 									<span class="lieu" v-if="bloc.lieu !== '' && bloc.lieu.includes('http') === false"><i class="material-icons">place</i><a :href="'https://www.openstreetmap.org/search?query=' + bloc.lieu" target="_blank">{{ bloc.lieu }}</a></span>
 									<span class="lieu" v-else-if="bloc.lieu !== '' && bloc.lieu.includes('http') === true"><i class="material-icons">voice_chat</i><a :href="bloc.lieu" target="_blank">{{ definirDomaine(bloc.lieu) }}</a></span>
 									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== '' || (bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui') || (bloc.hasOwnProperty('listeCriteres') === true && bloc.listeCriteres.length > 0)">
-										<a class="bouton icone" :href="bloc.lien" target="_blank" title="Ouvrir le lien" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-if="bloc.lien !== ''"><i class="material-icons">open_in_new</i></a>
-										<a class="bouton icone" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" title="Télécharger le fichier" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-else-if="bloc.fichier !== ''"><i class="material-icons">get_app</i></a>
+										<a class="bouton icone" :href="bloc.lien" target="_blank" :title="$t('ouvrirLien')" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-if="bloc.lien !== ''"><i class="material-icons">open_in_new</i></a>
+										<a class="bouton icone" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" :title="$t('telechargerFichier')" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-else-if="bloc.fichier !== ''"><i class="material-icons">get_app</i></a>
 										<span class="bouton icone" role="button" tabindex="0" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-if="bloc.hasOwnProperty('listeCriteres') === true && bloc.listeCriteres.length > 0" @click="ouvrirModaleCriteres(bloc.listeCriteres)"><i class="material-icons">fact_check</i></span>
-										<span class="bouton icone travaux" role="button" tabindex="0" title="Déposer ou consulter un travail" :style="{'border-color': bloc.couleur}" v-if="bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui'" @click="ouvrirModaleDepot(bloc.id)"><i class="material-icons">reply</i></span>
+										<span class="bouton icone travaux" role="button" tabindex="0" :title="$t('deposerConsulterTravail')" :style="{'border-color': bloc.couleur}" v-if="bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui'" @click="ouvrirModaleDepot(bloc.id)"><i class="material-icons">reply</i></span>
 									</div>
 								</div>
 								<div class="contenu" v-else-if="bloc.hasOwnProperty('code') === true && bloc.code !== ''">
 									<span class="titre" :style="{'border-color': bloc.couleur}">{{ bloc.titre }}</span>
-									<label>Contenu verrouillé</label>
-									<input type="text" placeholder="Code d'accès pour débloquer le contenu" :style="{'border-color': bloc.couleur}" @keydown.enter="debloquerEtape(bloc.id)">
+									<label>{{ $t('contenuVerrouille') }}</label>
+									<input type="text" :placeholder="$t('codeDebloquerContenu')" :style="{'border-color': bloc.couleur}" @keydown.enter="debloquerEtape(bloc.id)">
 									<div class="action">
-										<span class="bouton" role="button" tabindex="0" :style="{'border-color': bloc.couleur}" @click="debloquerEtape(bloc.id)">Valider</span>
+										<span class="bouton" role="button" tabindex="0" :style="{'border-color': bloc.couleur}" @click="debloquerEtape(bloc.id)">{{ $t('valider') }}</span>
 										<span class="bouton icone" role="button" tabindex="0" :style="{'color': bloc.couleur}" @click="$parent.$parent.message = bloc.indice" v-if="bloc.indice !== ''"><i class="material-icons">info</i></span>
 									</div>
 								</div>
@@ -138,7 +138,7 @@
 						</template>
 					</div>
 					<div id="blocs" class="vide" v-else-if="blocs.length === 0 && $parent.$parent.chargement === false">
-						<p>Aucune étape pour le moment.</p>
+						<p>{{ $t('aucuneEtape') }}</p>
 					</div>
 				</div>
 			</section>
@@ -147,99 +147,99 @@
 		<div class="conteneur-modale" v-if="modale === 'bloc'">
 			<div id="bloc" class="modale">
 				<header>
-					<span class="titre" v-if="mode === 'creation' && type === '-'">Ajouter une étape</span>
-					<span class="titre" v-else-if="mode === 'creation' && type === 'section'">Ajouter une section</span>
-					<span class="titre" v-else-if="mode === 'creation' && type === 'seance'">Ajouter une séance</span>
-					<span class="titre" v-else-if="mode === 'creation' && type === 'document'">Ajouter un document</span>
-					<span class="titre" v-else-if="mode === 'creation' && type === 'exercice'">Ajouter un exercice</span>
-					<span class="titre" v-else-if="mode === 'creation' && type === 'activite'">Ajouter une activité</span>
-					<span class="titre" v-else>Modifier cette étape</span>
+					<span class="titre" v-if="mode === 'creation' && type === '-'">{{ $t('ajouterEtape') }}</span>
+					<span class="titre" v-else-if="mode === 'creation' && type === 'section'">{{ $t('ajouterSection') }}</span>
+					<span class="titre" v-else-if="mode === 'creation' && type === 'seance'">{{ $t('ajouterSeance') }}</span>
+					<span class="titre" v-else-if="mode === 'creation' && type === 'document'">{{ $t('ajouterDocument') }}</span>
+					<span class="titre" v-else-if="mode === 'creation' && type === 'exercice'">{{ $t('ajouterExercice') }}</span>
+					<span class="titre" v-else-if="mode === 'creation' && type === 'activite'">{{ $t('ajouterActivite') }}</span>
+					<span class="titre" v-else>{{ $t('modifierEtape') }}</span>
 					<span class="fermer" role="button" tabindex="0" @click="fermerModaleContenu"><i class="material-icons">close</i></span>
 				</header>
 				<div class="conteneur ascenseur">
 					<div class="contenu">
-						<label for="champ-titre">Titre</label>
-						<input id="champ-titre" type="text" placeholder="Ajouter un titre" :value="titre" @input="titre = $event.target.value">
-						<label v-if="type === '-' || type === 'section' || type === 'seance' || type === 'document'">Description</label>
-						<label v-else>Consigne</label>
+						<label for="champ-titre">{{ $t('titre') }}</label>
+						<input id="champ-titre" type="text" :placeholder="$t('ajouterTitre')" :value="titre" @input="titre = $event.target.value">
+						<label v-if="type === '-' || type === 'section' || type === 'seance' || type === 'document'">{{ $t('description') }}</label>
+						<label v-else>{{ $t('consigne') }}</label>
 						<div id="texte" />
-						<label>Type d'étape</label>
+						<label>{{ $t('typeEtape') }}</label>
 						<select @change="modifierType($event.target.value)">
 							<option value="-" :selected="type === '-'">-</option>
-							<option value="section" :selected="type === 'section'">-Section-</option>
-							<option value="seance" :selected="type === 'seance'">Séance (en présence ou à distance)</option>
-							<option value="document" :selected="type === 'document'">Document (fichier ou lien)</option>
-							<option value="exercice" :selected="type === 'exercice'">Exercice</option>
-							<option value="activite" :selected="type === 'activite'">Activité</option>
+							<option value="section" :selected="type === 'section'">-{{ $t('section') }}-</option>
+							<option value="seance" :selected="type === 'seance'">{{ $t('seancePresenceDistance') }}</option>
+							<option value="document" :selected="type === 'document'">{{ $t('documentFichierLien') }}</option>
+							<option value="exercice" :selected="type === 'exercice'">{{ $t('exercice') }}</option>
+							<option value="activite" :selected="type === 'activite'">{{ $t('activite') }}</option>
 						</select>
 						<div id="options" v-if="type !== '-' && type !== 'section'">
 							<template v-if="type === 'seance'">
 								<div id="date-et-horaire">
 									<div id="date">
-										<label for="champ-date">Date</label>
+										<label for="champ-date">{{ $t('date') }}</label>
 										<input id="champ-date" type="date" :value="date" @input="date = $event.target.value">
 									</div>
 									<div id="debut">
-										<label for="champ-debut">Début</label>
+										<label for="champ-debut">{{ $t('debut') }}</label>
 										<input id="champ-debut" type="time" :value="debut" @input="debut = $event.target.value">
 									</div>
 									<div id="fin">
-										<label for="champ-fin">Fin</label>
+										<label for="champ-fin">{{ $t('fin') }}</label>
 										<input id="champ-fin" type="time" :value="fin" @input="fin = $event.target.value">
 									</div>
 								</div>
-								<label for="champ-lieu">Adresse ou lien de visioconférence</label>
-								<input id="champ-lieu" type="text" placeholder="Exemple : 5 rue des fleurs, 2000 La Digitale ou https://meet.jit.si" :value="lieu" @input="lieu = $event.target.value">
+								<label for="champ-lieu">{{ $t('adresseLienVisio') }}</label>
+								<input id="champ-lieu" type="text" :placeholder="$t('exemple') + '5 rue des fleurs, 2000 La Digitale ou https://meet.jit.si'" :value="lieu" @input="lieu = $event.target.value">
 							</template>
 							<template v-else-if="type === 'document' || type === 'exercice' || type === 'activite'">
-								<label>Type de ressource</label>
+								<label>{{ $t('typeRessource') }}</label>
 								<select @change="modifierRessource($event.target.value)">
 									<option value="-" :selected="ressource === '-'" v-if="type === 'activite'">-</option>
-									<option value="lien" :selected="ressource === 'lien'">Lien</option>
-									<option value="fichier" :selected="ressource === 'fichier'">Fichier</option>
+									<option value="lien" :selected="ressource === 'lien'">{{ $t('lien') }}</option>
+									<option value="fichier" :selected="ressource === 'fichier'">{{ $t('fichier') }}</option>
 								</select>
-								<label for="champ-lien" v-if="ressource === 'lien'">Lien</label>
-								<input id="champ-lien" type="text" placeholder="Exemples : https://ladigitale.dev/digiplay, https://ladigitale.dev/digiread" :value="lien" @input="lien = $event.target.value" v-if="type === 'document' && ressource === 'lien'">
-								<input id="champ-lien" type="text" placeholder="Exemples : https://digistorm.app, https://ladigitale.dev/digiquiz" :value="lien" @input="lien = $event.target.value" v-else-if="type === 'exercice' && ressource === 'lien'">
-								<input id="champ-lien" type="text" placeholder="Exemples : https://digipad.app, https://ladigitale.dev/digidoc" :value="lien" @input="lien = $event.target.value" v-else-if="type === 'activite' && ressource === 'lien'">
-								<label v-if="ressource === 'fichier'">Fichier (max. 2 Mo)</label>
+								<label for="champ-lien" v-if="ressource === 'lien'">{{ $t('lien') }}</label>
+								<input id="champ-lien" type="text" :placeholder="$t('exemples') + 'https://ladigitale.dev/digiplay, https://ladigitale.dev/digiread'" :value="lien" @input="lien = $event.target.value" v-if="type === 'document' && ressource === 'lien'">
+								<input id="champ-lien" type="text" :placeholder="$t('exemples') + 'https://digistorm.app, https://ladigitale.dev/digiquiz'" :value="lien" @input="lien = $event.target.value" v-else-if="type === 'exercice' && ressource === 'lien'">
+								<input id="champ-lien" type="text" :placeholder="$t('exemples') + 'https://digipad.app, https://ladigitale.dev/digidoc'" :value="lien" @input="lien = $event.target.value" v-else-if="type === 'activite' && ressource === 'lien'">
+								<label v-if="ressource === 'fichier'">{{ $t('fichierMax', { taille: 2 }) }}</label>
 								<div id="fichier" v-if="ressource === 'fichier'">
-									<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + fichier" target="_blank" v-if="mode === 'edition' && fichier !== '' && ancienFichier === fichier">Voir le fichier actuel</a>
-									<label for="televerser" class="bouton" role="button" tabindex="0" v-if="fichier === ''">Sélectionner un fichier</label>
+									<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + fichier" target="_blank" v-if="mode === 'edition' && fichier !== '' && ancienFichier === fichier">{{ $t('voirFichierActuel') }}</a>
+									<label for="televerser" class="bouton" role="button" tabindex="0" v-if="fichier === ''">{{ $t('selectionnerFichier') }}</label>
 									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="mode === 'creation' && fichier !== ''">{{ fichier }}</label>
-									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="mode === 'edition' && fichier !== '' && ancienFichier === fichier">Remplacer le fichier actuel</label>
+									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="mode === 'edition' && fichier !== '' && ancienFichier === fichier">{{ $t('remplacerFichier') }}</label>
 									<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="mode === 'edition' && fichier !== '' && ancienFichier !== fichier">{{ fichier }}</label>
 									<input id="televerser" type="file" accept=".jpg, .jpeg, .png, .gif, .mp3, .mp4, .pdf, .doc, .docx, .odt, .ppt, .pptx, .odp, .xls, .xlsx, .ods" @change="selectionnerFichier" style="display: none;">
 								</div>
 							</template>
 							<template v-if="type === 'activite'">
-								<label>Dépôt par les apprenants (lien ou fichier)</label>
+								<label>{{ $t('depotLienFichier') }}</label>
 								<div id="depot">
 									<span class="label">
 										<input type="radio" id="depot_oui" name="depot" value="oui" :checked="depot === 'oui'" @change="depot = $event.target.value">
-										<label for="depot_oui">Oui</label>
+										<label for="depot_oui">{{ $t('oui') }}</label>
 									</span>
 									<span class="label">
 										<input type="radio" id="depot_non" name="depot" value="non" :checked="depot === 'non'" @change="depot = $event.target.value">
-										<label for="depot_non">Non</label>
+										<label for="depot_non">{{ $t('non') }}</label>
 									</span>
 								</div>
-								<label>Critères d'évaluation</label>
+								<label>{{ $t('criteresEvaluation') }}</label>
 								<div id="criteres">
 									<span class="label">
 										<input type="radio" id="criteres_oui" name="criteres" value="oui" :checked="criteres === 'oui'" @change="modifierCriteres($event.target.value)">
-										<label for="criteres_oui">Oui</label>
+										<label for="criteres_oui">{{ $t('oui') }}</label>
 									</span>
 									<span class="label">
 										<input type="radio" id="criteres_non" name="criteres" value="non" :checked="criteres === 'non'" @change="modifierCriteres($event.target.value)">
-										<label for="criteres_non">Non</label>
+										<label for="criteres_non">{{ $t('non') }}</label>
 									</span>
 								</div>
 								<div id="evaluation" v-if="criteres === 'oui'">
-									<label>Libellé du critère</label>
-									<label>Nombre d'étoiles</label>
+									<label>{{ $t('libelleCritere') }}</label>
+									<label>{{ $t('nombreEtoiles') }}</label>
 									<span class="critere" v-for="(critere, indexCritere) in listeCriteres" :key="'critere_' + indexCritere">
-										<input type="text" placeholder="Exemple : qualité de la langue" :value="critere.libelle" @input="critere.libelle = $event.target.value">
+										<input type="text" :placeholder="$t('exempleCritere')" :value="critere.libelle" @input="critere.libelle = $event.target.value">
 										<select @change="critere.etoiles = parseInt($event.target.value)">
 											<option :value="1" :selected="critere.etoiles === 1">1</option>
 											<option :value="2" :selected="critere.etoiles === 2">2</option>
@@ -254,14 +254,14 @@
 										</select>
 									</span>
 									<div class="actions">
-										<span role="button" tabindex="0" title="Supprimer un critère" @click="supprimerCritere"><i class="material-icons">remove_circle_outline</i></span>
-										<span role="button" tabindex="0" title="Ajouter un critère" @click="ajouterCritere"><i class="material-icons">add_circle_outline</i></span>
+										<span role="button" tabindex="0" :title="$t('supprimerCritere')" @click="supprimerCritere"><i class="material-icons">remove_circle_outline</i></span>
+										<span role="button" tabindex="0" :title="$t('ajouterCritere')" @click="ajouterCritere"><i class="material-icons">add_circle_outline</i></span>
 									</div>
 								</div>
 							</template>
-							<label v-if="type === 'seance'">Durée</label>
-							<label v-else-if="type === 'document'">Durée estimée de consultation</label>
-							<label v-else>Durée estimée de réalisation</label>
+							<label v-if="type === 'seance'">{{ $t('duree') }}</label>
+							<label v-else-if="type === 'document'">{{ $t('dureeEstimeeConsultation') }}</label>
+							<label v-else>{{ $t('dureeEstimeeRealisation') }}</label>
 							<div id="duree">
 								<select @change="heures = parseInt($event.target.value)">
 									<option :value="0" :selected="heures === 0">0</option>
@@ -296,42 +296,42 @@
 							</div>
 						</div>
 						<template v-if="type !== '-' && type !== 'section'">
-							<label>Étape verrouillée avec un code d'accès</label>
+							<label>{{ $t('etapeVerrouilleeCode') }}</label>
 							<div id="verrouillage">
 								<span class="label">
 									<input type="radio" id="verrouillage_oui" name="verrouillage" value="oui" :checked="verrouillage === 'oui'" @change="modifierVerrouillage($event.target.value)">
-									<label for="verrouillage_oui">Oui</label>
+									<label for="verrouillage_oui">{{ $t('oui') }}</label>
 								</span>
 								<span class="label">
 									<input type="radio" id="verrouillage_non" name="verrouillage" value="non" :checked="verrouillage === 'non'" @change="modifierVerrouillage($event.target.value)">
-									<label for="verrouillage_non">Non</label>
+									<label for="verrouillage_non">{{ $t('non') }}</label>
 								</span>
 							</div>
-							<label v-if="verrouillage === 'oui'">Code d'accès</label>
-							<input id="champ-code" type="text" placeholder="Ajouter un code" :value="code" @input="code = $event.target.value" v-if="verrouillage === 'oui'">
-							<label v-if="verrouillage === 'oui'">Indice pour le code d'accès</label>
-							<input id="champ-indice" type="text" placeholder="Exemple : plante herbacée vénéneuse dont la tige porte une longue grappe de fleurs" :value="indice" @input="indice = $event.target.value" v-if="verrouillage === 'oui'">
+							<label v-if="verrouillage === 'oui'">{{ $t('codeAcces') }}</label>
+							<input id="champ-code" type="text" :placeholder="$t('ajouterCode')" :value="code" @input="code = $event.target.value" v-if="verrouillage === 'oui'">
+							<label v-if="verrouillage === 'oui'">{{ $t('indiceCode') }}</label>
+							<input id="champ-indice" type="text" :placeholder="$t('exempleIndice')" :value="indice" @input="indice = $event.target.value" v-if="verrouillage === 'oui'">
 						</template>
-						<label v-if="type !== '-' && type !== 'section'">Vignette</label>
+						<label v-if="type !== '-' && type !== 'section'">{{ $t('vignette') }}</label>
 						<select id="vignette" @change="modifierVignette($event.target.value)" v-if="type === 'seance'">
-							<option value="icone_meeting_room" :selected="vignette === 'icone_meeting_room'">Icône classe</option>
-							<option value="icone_devices" :selected="vignette === 'icone_devices'">Icône visioconférence</option>
+							<option value="icone_meeting_room" :selected="vignette === 'icone_meeting_room'">{{ $t('iconeClasse') }}</option>
+							<option value="icone_devices" :selected="vignette === 'icone_devices'">{{ $t('iconeVisio') }}</option>
 							<option value="jitsi" :selected="vignette === 'jitsi'">Jitsi Meet</option>
 							<option value="teams" :selected="vignette === 'teams'">Microsoft Teams</option>
 							<option value="zoom" :selected="vignette === 'zoom'">Zoom</option>
 							<option value="meet" :selected="vignette === 'meet'">Google Meet</option>
 						</select>
 						<select id="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'document'">
-							<option value="icone_article" :selected="vignette === 'icone_article'">Icône document</option>
-							<option value="icone_cloud_download" :selected="vignette === 'icone_cloud_download'">Icône nuage</option>
-							<option value="icone_explore" :selected="vignette === 'icone_explore'">Icône explorer</option>
+							<option value="icone_article" :selected="vignette === 'icone_article'">{{ $t('iconeDocument') }}</option>
+							<option value="icone_cloud_download" :selected="vignette === 'icone_cloud_download'">{{ $t('iconeNuage') }}</option>
+							<option value="icone_explore" :selected="vignette === 'icone_explore'">{{ $t('iconeBoussole') }}</option>
 							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="wikipedia" :selected="vignette === 'wikipedia'">Wikipedia</option>
 							<option value="canoprof" :selected="vignette === 'canoprof'">Canoprof</option>
 							<option value="tv5monde" :selected="vignette === 'tv5monde'">TV5MONDE</option>
 							<option value="lumni" :selected="vignette === 'lumni'">Lumni</option>
 							<option value="peertube" :selected="vignette === 'peertube'">Peertube</option>
-							<option value="pdf" :selected="vignette === 'pdf'">Fichier PDF</option>
+							<option value="pdf" :selected="vignette === 'pdf'">{{ $t('fichierPDF') }}</option>
 							<option value="odt" :selected="vignette === 'odt'">LibreOffice Writer</option>
 							<option value="odp" :selected="vignette === 'odp'">LibreOffice Impress</option>
 							<option value="ods" :selected="vignette === 'ods'">LibreOffice Calc</option>
@@ -346,7 +346,7 @@
 							<option value="vimeo" :selected="vignette === 'vimeo'">Vimeo</option>
 						</select>
 						<select id="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'exercice'">
-							<option value="icone_check_circle" :selected="vignette === 'icone_check_circle'">Icône exercice</option>
+							<option value="icone_check_circle" :selected="vignette === 'icone_check_circle'">{{ $t('iconeExercice') }}</option>
 							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="h5p" :selected="vignette === 'h5p'">H5P</option>
 							<option value="learningapps" :selected="vignette === 'learningapps'">Learning Apps</option>
@@ -354,9 +354,9 @@
 							<option value="quizlet" :selected="vignette === 'quizlet'">Quizlet</option>
 						</select>
 						<select id="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'activite'">
-							<option value="icone_lightbulb" :selected="vignette === 'icone_lightbulb'">Icône activite</option>
-							<option value="icone_assessment" :selected="vignette === 'icone_assessment'">Icône évaluation</option>
-							<option value="icone_check_circle" :selected="vignette === 'icone_check_circle'">Icône coche</option>
+							<option value="icone_lightbulb" :selected="vignette === 'icone_lightbulb'">{{ $t('iconeActivite') }}</option>
+							<option value="icone_assessment" :selected="vignette === 'icone_assessment'">{{ $t('iconeEvaluation') }}</option>
+							<option value="icone_check_circle" :selected="vignette === 'icone_check_circle'">{{ $t('iconeCoche') }}</option>
 							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="h5p" :selected="vignette === 'h5p'">H5P</option>
 							<option value="quiziniere" :selected="vignette === 'quiziniere'">QuiZinière</option>
@@ -368,26 +368,26 @@
 							<i class="material-icons" v-if="vignette.substring(0, 5) === 'icone'">{{ vignette.substring(6) }}</i>
 							<img :src="definirRacine() + 'static/vignettes/' + vignette + '.png'" v-else>
 						</div>
-						<label>Couleur</label>
+						<label>{{ $t('couleur') }}</label>
 						<div id="couleurs">
 							<span v-for="(item, index) in couleurs" :class="{'selectionne': item === couleur}" :style="{'background': item}" @click="selectionnerCouleur(item)" :key="'couleur_' + index" />
 							<span class="icone">
 								<label for="couleur"><i class="material-icons">colorize</i></label>
-								<input type="color" id="couleur" value="#dddddd" title="Sélectionner une couleur" @change="selectionnerCouleur($event.target.value)" v-if="couleurs.includes(couleur)">
-								<input type="color" id="couleur" class="selectionne" title="Sélectionner une couleur" @change="selectionnerCouleur($event.target.value)" v-else>
+								<input type="color" id="couleur" value="#dddddd" :title="$t('selectionnerCouleur')" @change="selectionnerCouleur($event.target.value)" v-if="couleurs.includes(couleur)">
+								<input type="color" id="couleur" class="selectionne" :title="$t('selectionnerCouleur')" @change="selectionnerCouleur($event.target.value)" v-else>
 							</span>
 						</div>
 					</div>
 				</div>
-				<div id="valider" role="button" tabindex="0" @click="ajouterBloc" v-if="mode === 'creation'">Valider</div>
-				<div id="valider" role="button" tabindex="0" @click="modifierBloc" v-else>Modifier</div>
+				<div id="valider" role="button" tabindex="0" @click="ajouterBloc" v-if="mode === 'creation'">{{ $t('valider') }}</div>
+				<div id="valider" role="button" tabindex="0" @click="modifierBloc" v-else>{{ $t('modifier') }}</div>
 			</div>
 		</div>
 
 		<div class="conteneur-modale" v-else-if="modale === 'televerser'">
 			<div class="modale">
 				<header>
-					<span class="titre">Téléversement du fichier...</span>
+					<span class="titre">{{ $t('televersementFichier') }}</span>
 				</header>
 				<div class="conteneur">
 					<div class="contenu">
@@ -404,10 +404,10 @@
 			<div class="modale confirmation">
 				<div class="conteneur entier">
 					<div class="contenu">
-						<p>Souhaitez-vous vraiment supprimer cette étape&nbsp;?</p>
+						<p v-html="$t('confirmationSupprimerEtape')" />
 						<div class="actions">
-							<span class="bouton" role="button" tabindex="0" @click="modale = ''">Non</span>
-							<span class="bouton" role="button" tabindex="0" @click="supprimerBloc">Oui</span>
+							<span class="bouton" role="button" tabindex="0" @click="modale = ''">{{ $t('non') }}</span>
+							<span class="bouton" role="button" tabindex="0" @click="supprimerBloc">{{ $t('oui') }}</span>
 						</div>
 					</div>
 				</div>
@@ -417,20 +417,23 @@
 		<div class="conteneur-modale" v-else-if="modale === 'travaux'">
 			<div id="travaux" class="modale">
 				<header>
-					<span class="titre">Afficher les travaux</span>
+					<span class="titre">{{ $t('afficherTravaux') }}</span>
 					<span class="fermer" role="button" tabindex="0" @click="fermerModaleTravaux"><i class="material-icons">close</i></span>
 				</header>
 				<div class="conteneur ascenseur">
 					<div class="contenu">
 						<div :id="'travail' + travail.motdepasse" class="travail" v-for="(travail, indexTravail) in travaux" :key="'travail_' + indexTravail">
-							<span class="meta">par <b>{{ travail.pseudo }}</b> {{ definirDateEtHeure(travail.date) }} <span class="motdepasse">(mot de passe&nbsp;: {{ travail.motdepasse }})</span></span>
+							<span class="meta">{{ $t('par') }}<b>{{ travail.pseudo }}</b> {{ definirDateEtHeure(travail.date) }} <span class="motdepasse" v-html="'(' + $t('motDePasse') + travail.motdepasse + ')'" /></span>
 							<div class="boutons">
-								<a class="bouton icone" :href="travail.lien" target="_blank" title="Ouvrir le lien vers le travail" v-if="travail.lien !== ''"><i class="material-icons">open_in_new</i></a>
-								<a class="bouton icone" :href="definirRacine() + 'fichiers/' + id + '/' + travail.fichier" target="_blank" title="Télécharger le travail" v-else-if="travail.fichier !== ''"><i class="material-icons">get_app</i></a>
-								<span class="bouton icone evaluer" role="button" tabindex="0" title="Évaluer" @click="afficherRetroaction(travail)" v-if="parseInt(travail.motdepasse) !== parseInt(motdepasse) && travail.retroaction === ''"><i class="material-icons">edit</i></span>
-								<span class="bouton icone evaluer" role="button" tabindex="0" title="Modifier l'évaluation" @click="afficherRetroaction(travail)" v-else-if="parseInt(travail.motdepasse) !== parseInt(motdepasse) && travail.retroaction !== ''"><i class="material-icons">edit</i></span>
+								<a class="bouton icone" :href="travail.lien" target="_blank" :title="$t('ouvrirLienTravail')" v-if="travail.lien !== ''"><i class="material-icons">open_in_new</i></a>
+								<a class="bouton icone" :href="definirRacine() + 'fichiers/' + id + '/' + travail.fichier" target="_blank" :title="$t('telerchargerTravail')" v-else-if="travail.fichier !== ''"><i class="material-icons">get_app</i></a>
+								<span class="bouton icone" role="button" tabindex="0" :title="$t('fermerEvaluation')" @click="afficherRetroaction(travail)" v-if="parseInt(travail.motdepasse) === parseInt(motdepasseRetroaction) && travail.retroaction === ''"><i class="material-icons">speaker_notes_off</i></span>
+								<span class="bouton icone" role="button" tabindex="0" :title="$t('evaluer')" @click="afficherRetroaction(travail)" v-else-if="parseInt(travail.motdepasse) !== parseInt(motdepasseRetroaction) && travail.retroaction === ''"><i class="material-icons">speaker_notes</i></span>
+								<span class="bouton icone evaluer" role="button" tabindex="0" :title="$t('fermerEvaluation')" @click="afficherRetroaction(travail)" v-else-if="parseInt(travail.motdepasse) === parseInt(motdepasseRetroaction) && travail.retroaction !== ''"><i class="material-icons">edit_off</i></span>
+								<span class="bouton icone evaluer" role="button" tabindex="0" :title="$t('modifierEvaluation')" @click="afficherRetroaction(travail)" v-else-if="parseInt(travail.motdepasse) !== parseInt(motdepasseRetroaction) && travail.retroaction !== ''"><i class="material-icons">edit</i></span>
+								<span class="bouton icone rouge" :title="$t('supprimerTravail')" @click="afficherSupprimerTravail(travail.motdepasse)"><i class="material-icons">delete</i></span>
 							</div>
-							<div class="retroaction" v-if="parseInt(travail.motdepasse) === parseInt(motdepasse)">
+							<div class="retroaction" v-if="parseInt(travail.motdepasse) === parseInt(motdepasseRetroaction)">
 								<div id="liste-criteres" v-if="listeCriteres.length > 0">
 									<template v-for="(critere, indexCritere) in listeCriteres" :key="'critere_' + indexCritere">
 										<label>{{ critere.libelle }}</label>
@@ -442,80 +445,80 @@
 								</div>
 								<div id="retroaction" />
 								<div class="boutons">
-									<span class="bouton" role="button" tabindex="0" @click="annulerRetroaction">Annuler</span>
-									<span class="bouton" role="button" tabindex="0" @click="enregistrerRetroaction">Enregistrer</span>
+									<span class="bouton" role="button" tabindex="0" @click="annulerRetroaction">{{ $t('annuler') }}</span>
+									<span class="bouton" role="button" tabindex="0" @click="enregistrerRetroaction">{{ $t('enregistrer') }}</span>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-				<div id="valider" role="button" tabindex="0" @click="deposer" v-if="mode === 'deposer' || mode === 'afficher'">Valider</div>
-				<div id="valider" role="button" tabindex="0" @click="verifier" v-else-if="mode === 'verifier'">Valider</div>
+				<div id="valider" role="button" tabindex="0" @click="deposer" v-if="mode === 'deposer' || mode === 'afficher'">{{ $t('valider') }}</div>
+				<div id="valider" role="button" tabindex="0" @click="verifier" v-else-if="mode === 'verifier'">{{ $t('valider') }}</div>
 			</div>
 		</div>
 
 		<div class="conteneur-modale" v-else-if="modale === 'depot'">
 			<div id="travail" class="modale" :class="{'deposer': mode === 'deposer' || mode === 'afficher', 'verifier': mode === 'verifier'}">
 				<header>
-					<span class="titre" v-if="mode === 'deposer'">Déposer un travail</span>
-					<span class="titre" v-else-if="mode === 'verifier' || mode === 'afficher'">Consulter un travail</span>
-					<span class="titre" v-else>Déposer ou consulter un travail</span>
+					<span class="titre" v-if="mode === 'deposer'">{{ $t('deposerTravail') }}</span>
+					<span class="titre" v-else-if="mode === 'verifier' || mode === 'afficher'">{{ $t('consulterTravail') }}</span>
+					<span class="titre" v-else>{{ $t('deposerConsulterTravail') }}</span>
 					<span class="fermer" role="button" tabindex="0" @click="fermerModaleDepot"><i class="material-icons">close</i></span>
 				</header>
 				<div class="conteneur ascenseur">
 					<div class="contenu">
-						<label v-if="mode === '' || mode === '-'">Je veux...</label>
+						<label v-if="mode === '' || mode === '-'">{{ $t('jeVeux') }}</label>
 						<select @change="modifierModeDepot($event.target.value)" v-if="mode === '' || mode === '-'">
 							<option value="-">-</option>
-							<option value="deposer">déposer un travail.</option>
-							<option value="verifier">consulter un travail.</option>
+							<option value="deposer">{{ $t('deposerTravailMin') }}</option>
+							<option value="verifier">{{ $t('consulterTravailMin') }}</option>
 						</select>
 						<template v-if="mode === 'deposer'">
-							<label>Nom ou pseudo</label>
-							<input type="text" :value="pseudo" placeholder="Nom ou pseudo"  @input="pseudo = $event.target.value">
-							<label>Mot de passe (<u>à noter</u> pour modifier le dépôt ou consulter le retour de l'enseignant)</label>
+							<label>{{ $t('nomOuPseudo') }}</label>
+							<input type="text" :value="pseudo" :placeholder="$t('nomOuPseudo')"  @input="pseudo = $event.target.value">
+							<label v-html="$t('remarqueMotDePasse')" />
 							<input type="text" :value="motdepasse" disabled>
-							<label>Type de dépôt</label>
+							<label>{{ $t('typeDepot') }}</label>
 							<select @change="modifierRessourceDepot($event.target.value)">
-								<option value="lien" :selected="ressource === 'lien'">Lien</option>
-								<option value="fichier" :selected="ressource === 'fichier'">Fichier</option>
+								<option value="lien" :selected="ressource === 'lien'">{{ $t('lien') }}</option>
+								<option value="fichier" :selected="ressource === 'fichier'">{{ $t('fichier') }}</option>
 							</select>
-							<label for="champ-lien" v-if="ressource === 'lien'">Lien</label>
+							<label for="champ-lien" v-if="ressource === 'lien'">{{ $t('lien') }}</label>
 							<input id="champ-lien" type="text" :value="lien" placeholder="https://..." @input="lien = $event.target.value" v-if="ressource === 'lien'">
-							<label v-if="ressource === 'fichier'">Fichier (max. 2 Mo)</label>
+							<label v-if="ressource === 'fichier'">{{ $t('fichierMax', { taille: 2 }) }}</label>
 							<div id="fichier" v-if="ressource === 'fichier'">
-								<label for="televerser" class="bouton" role="button" tabindex="0" v-if="fichier === ''">Sélectionner un fichier</label>
+								<label for="televerser" class="bouton" role="button" tabindex="0" v-if="fichier === ''">{{ $t('selectionnerFichier') }}</label>
 								<label for="televerser" class="bouton" role="button" tabindex="0" v-else>{{ fichier }}</label>
 								<input id="televerser" type="file" accept=".jpg, .jpeg, .png, .gif, .mp3, .mp4, .pdf, .doc, .docx, .odt, .ppt, .pptx, .odp, .xls, .xlsx, .ods" @change="selectionnerFichier" style="display: none;">
 							</div>
 						</template>
 						<template v-else-if="mode === 'verifier'">
-							<label>Mot de passe</label>
+							<label>{{ $t('motdepasse') }}</label>
 							<input type="text" :value="motdepasse" placeholder="6 chiffres" @input="motdepasse = $event.target.value" @keydown.enter="verifier">
 						</template>
 						<template v-else-if="mode === 'afficher'">
-							<label>Nom ou pseudo</label>
-							<input type="text" :value="pseudo" placeholder="Nom ou pseudo"  @input="pseudo = $event.target.value">
-							<label>Mot de passe</label>
+							<label>{{ $t('nomOuPseudo') }}</label>
+							<input type="text" :value="pseudo" :placeholder="$t('nomOuPseudo')" @input="pseudo = $event.target.value">
+							<label>{{ $t('motdepasse') }}</label>
 							<input type="text" :value="motdepasse" disabled>
-							<label>Type de dépôt</label>
+							<label>{{ $t('typeDepot') }}</label>
 							<select @change="modifierRessourceDepot($event.target.value)">
-								<option value="lien" :selected="ressource === 'lien'">Lien</option>
-								<option value="fichier" :selected="ressource === 'fichier'">Fichier</option>
+								<option value="lien" :selected="ressource === 'lien'">{{ $t('lien') }}</option>
+								<option value="fichier" :selected="ressource === 'fichier'">{{ $t('fichier') }}</option>
 							</select>
-							<label for="champ-lien" v-if="ressource === 'lien'">Lien</label>
+							<label for="champ-lien" v-if="ressource === 'lien'">{{ $t('lien') }}</label>
 							<input id="champ-lien" type="text" :value="lien" placeholder="https://..." @input="lien = $event.target.value" v-if="ressource === 'lien'">
-							<label v-if="ressource === 'fichier'">Fichier (max. 2 Mo)</label>
+							<label v-if="ressource === 'fichier'">{{ $t('fichierMax', { taille: 2 }) }}</label>
 							<div id="fichier" v-if="ressource === 'fichier'">
-								<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + fichier" target="_blank" v-if="fichier !== '' && ancienFichier === fichier">Voir le fichier actuel</a>
-								<label for="televerser" class="bouton" role="button" tabindex="0" v-if="fichier === ''">Sélectionner un fichier</label>
-								<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="fichier !== '' && ancienFichier === fichier">Remplacer le fichier actuel</label>
+								<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + fichier" target="_blank" v-if="fichier !== '' && ancienFichier === fichier">{{ $t('voirFichierActuel') }}</a>
+								<label for="televerser" class="bouton" role="button" tabindex="0" v-if="fichier === ''">{{ $t('selectionnerFichier') }}</label>
+								<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="fichier !== '' && ancienFichier === fichier">{{ $t('remplacerFichier') }}</label>
 								<label for="televerser" class="bouton" role="button" tabindex="0" v-else-if="fichier !== '' && ancienFichier !== fichier">{{ fichier }}</label>
 								<input id="televerser" type="file" accept=".jpg, .jpeg, .png, .gif, .mp3, .mp4, .pdf, .doc, .docx, .odt, .ppt, .pptx, .odp, .xls, .xlsx, .ods" @change="selectionnerFichier" style="display: none;">
 							</div>
-							<label>Commentaire</label>
+							<label>{{ $t('commentaire') }}</label>
 							<div id="commentaire" v-if="retroaction !== ''" v-html="retroaction" />
-							<div id="commentaire" v-else>Aucun commentaire.</div>
+							<div id="commentaire" v-else>{{ $t('aucunCommentaire') }}</div>
 							<div id="etoiles" v-if="evaluation.length > 0">
 								<template v-for="(critere, indexCritere) in listeCriteres" :key="'critere_' + indexCritere">
 									<label>{{ critere.libelle }}</label>
@@ -525,18 +528,19 @@
 									</div>
 								</template>
 							</div>
+							<span class="bouton large rouge" role="button" tabindex="0" v-if="retroaction === '' && evaluation.length === 0" @click="afficherSupprimerDepot">{{ $t('supprimerTravail') }}</span>
 						</template>
 					</div>
 				</div>
-				<div id="valider" role="button" tabindex="0" @click="deposer" v-if="mode === 'deposer' || mode === 'afficher'">Valider</div>
-				<div id="valider" role="button" tabindex="0" @click="verifier" v-else-if="mode === 'verifier'">Valider</div>
+				<div id="valider" role="button" tabindex="0" @click="deposer" v-if="mode === 'deposer' || mode === 'afficher'">{{ $t('valider') }}</div>
+				<div id="valider" role="button" tabindex="0" @click="verifier" v-else-if="mode === 'verifier'">{{ $t('valider') }}</div>
 			</div>
 		</div>
 
 		<div class="conteneur-modale" v-else-if="modale === 'criteres'">
 			<div class="modale">
 				<header>
-					<span class="titre">Critères d'évaluation</span>
+					<span class="titre">{{ $t('criteresEvaluation') }}</span>
 					<span class="fermer" role="button" tabindex="0" @click="fermerModaleCriteres"><i class="material-icons">close</i></span>
 				</header>
 				<div class="conteneur">
@@ -555,19 +559,19 @@
 		<div class="conteneur-modale" v-else-if="modale === 'connexion'">
 			<div class="modale">
 				<header>
-					<span class="titre">Modifier ce parcours</span>
+					<span class="titre">{{ $t('debloquerParcours') }}</span>
 					<span class="fermer" role="button" tabindex="0" @click="fermerModaleConnexion"><i class="material-icons">close</i></span>
 				</header>
 				<div class="conteneur">
 					<div class="contenu">
-						<label>Question secrète</label>
+						<label>{{ $t('questionSecrete') }}</label>
 						<select :value="question" @change="question = $event.target.value">
-							<option v-for="(item, index) in questions" :key="'option_' + index">{{ item }}</option>
+							<option v-for="(item, index) in questions" :value="item" :key="'option_' + index">{{ $t(item) }}</option>
 						</select>
-						<label>Réponse secrète</label>
+						<label>{{ $t('reponseSecrete') }}</label>
 						<input type="password" :value="reponse" @input="reponse = $event.target.value" @keydown.enter="debloquerParcours">
 						<div class="actions">
-							<span class="bouton" role="button" tabindex="0" @click="debloquerParcours">Valider</span>
+							<span class="bouton" role="button" tabindex="0" @click="debloquerParcours">{{ $t('valider') }}</span>
 						</div>
 					</div>
 				</div>
@@ -577,15 +581,19 @@
 		<div class="conteneur-modale" v-else-if="modale === 'parcours'">
 			<div class="modale">
 				<header>
-					<span class="titre">Paramètres du parcours</span>
+					<span class="titre">{{ $t('parametresParcours') }}</span>
 					<span class="fermer" role="button" tabindex="0" @click="fermerModaleParcours"><i class="material-icons">close</i></span>
 				</header>
 				<div class="conteneur">
 					<div class="contenu">
-						<span class="bouton large" role="button" tabindex="0" @click="ouvrirModaleNomParcours">Modifier le nom du parcours</span>
-						<span class="bouton large" role="button" tabindex="0" @click="ouvrirModaleAccesParcours">Modifier l'accès au parcours</span>
-						<span class="bouton large rouge" role="button" tabindex="0" @click="afficherSupprimerParcours">Supprimer le parcours</span>
-						<span class="bouton large" role="button" tabindex="0" @click="terminerSession">Terminer la session d'édition</span>
+						<div class="langue">
+							<span :class="{'selectionne': $parent.$parent.langue === 'fr'}" @click="modifierLangue('fr')">FR</span>
+							<span :class="{'selectionne': $parent.$parent.langue === 'en'}" @click="modifierLangue('en')">EN</span>
+						</div>
+						<span class="bouton large" role="button" tabindex="0" @click="ouvrirModaleNomParcours">{{ $t('modifierNomParcours') }}</span>
+						<span class="bouton large" role="button" tabindex="0" @click="ouvrirModaleAccesParcours">{{ $t('modifierAccesParcours') }}</span>
+						<span class="bouton large rouge" role="button" tabindex="0" @click="afficherSupprimerParcours">{{ $t('supprimerParcours') }}</span>
+						<span class="bouton large" role="button" tabindex="0" @click="terminerSession">{{ $t('terminerSession') }}</span>
 					</div>
 				</div>
 			</div>
@@ -594,15 +602,15 @@
 		<div class="conteneur-modale" v-else-if="modale === 'modifier-nom'">
 			<div class="modale">
 				<header>
-					<span class="titre">Modifier le nom du parcours</span>
+					<span class="titre">{{ $t('modifierNomParcours') }}</span>
 					<span class="fermer" role="button" @click="fermerModaleNomParcours"><i class="material-icons">close</i></span>
 				</header>
 				<div class="conteneur">
 					<div class="contenu">
-						<label>Nouveau nom</label>
+						<label>{{ $t('nouveauNom') }}</label>
 						<input type="text" :value="nouveaunom" @input="nouveaunom = $event.target.value" @keydown.enter="modifierNomParcours">
 						<div class="actions">
-							<span class="bouton" role="button" tabindex="0" @click="modifierNomParcours">Modifier</span>
+							<span class="bouton" role="button" tabindex="0" @click="modifierNomParcours">{{ $t('modifier') }}</span>
 						</div>
 					</div>
 				</div>
@@ -612,39 +620,67 @@
 		<div class="conteneur-modale" v-else-if="modale === 'modifier-acces'">
 			<div class="modale">
 				<header>
-					<span class="titre">Modifier l'accès au parcours</span>
+					<span class="titre">{{ $t('modifierAccesParcours') }}</span>
 					<span class="fermer" role="button" tabindex="0" @click="fermerModaleAccesParcours"><i class="material-icons">close</i></span>
 				</header>
 				<div class="conteneur">
 					<div class="contenu">
-						<label>Question secrète actuelle</label>
+						<label>{{ $t('questionSecreteActuelle') }}</label>
 						<select :value="question" @change="question = $event.target.value">
-							<option v-for="(item, index) in questions" :key="'option_' + index">{{ item }}</option>
+							<option v-for="(item, index) in questions" :value="item" :key="'option_' + index">{{ $t(item) }}</option>
 						</select>
-						<label>Réponse secrète actuelle</label>
+						<label>{{ $t('reponseSecreteActuelle') }}</label>
 						<input type="text" :value="reponse" @input="reponse = $event.target.value">
-						<label>Nouvelle question secrète</label>
+						<label>{{ $t('nouvelleQuestionSecrete') }}</label>
 						<select :value="nouvellequestion" @change="nouvellequestion = $event.target.value">
-							<option v-for="(item, index) in questions" :key="'option_' + index">{{ item }}</option>
+							<option v-for="(item, index) in questions" :value="item" :key="'option_' + index">{{ $t(item) }}</option>
 						</select>
-						<label>Nouvelle réponse secrète</label>
+						<label>{{ $t('nouvelleReponseSecrete') }}</label>
 						<input type="text" :value="nouvellereponse" @input="nouvellereponse = $event.target.value" @keydown.enter="modifierAccesParcours">
 						<div class="actions">
-							<span class="bouton" role="button" tabindex="0" @click="modifierAccesParcours">Modifier</span>
+							<span class="bouton" role="button" tabindex="0" @click="modifierAccesParcours">{{ $t('modifier') }}</span>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="conteneur-modale" v-else-if="modale === 'supprimer-parcours'">
+		<div class="conteneur-modale" v-if="confirmation === 'supprimer-parcours'">
 			<div class="modale confirmation">
 				<div class="conteneur entier">
 					<div class="contenu">
-						<p>Souhaitez-vous vraiment supprimer ce parcours et tout son contenu&nbsp;?</p>
+						<p v-html="$t('confirmationSupprimerParcours')" />
 						<div class="actions">
-							<span class="bouton" role="button" tabindex="0" @click="modale = ''">Non</span>
-							<span class="bouton" role="button" tabindex="0" @click="supprimerParcours">Oui</span>
+							<span class="bouton" role="button" tabindex="0" @click="confirmation = ''">{{ $t('non') }}</span>
+							<span class="bouton" role="button" tabindex="0" @click="supprimerParcours">{{ $t('oui') }}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="conteneur-modale" v-else-if="confirmation === 'supprimer-travail'">
+			<div class="modale confirmation">
+				<div class="conteneur entier">
+					<div class="contenu">
+						<p v-html="$t('confirmationSupprimerTravail')" />
+						<div class="actions">
+							<span class="bouton" role="button" tabindex="0" @click="annulerSupprimerTravail">{{ $t('non') }}</span>
+							<span class="bouton" role="button" tabindex="0" @click="supprimerTravail">{{ $t('oui') }}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="conteneur-modale" v-else-if="confirmation === 'supprimer-depot'">
+			<div class="modale confirmation">
+				<div class="conteneur entier">
+					<div class="contenu">
+						<p v-html="$t('confirmationSupprimerTravail')" />
+						<div class="actions">
+							<span class="bouton" role="button" tabindex="0" @click="confirmation = ''">{{ $t('non') }}</span>
+							<span class="bouton" role="button" tabindex="0" @click="supprimerDepot">{{ $t('oui') }}</span>
 						</div>
 					</div>
 				</div>
@@ -654,7 +690,7 @@
 		<div class="conteneur-modale" v-show="modale === 'code-qr'">
 			<div id="codeqr" class="modale">
 				<header>
-					<span class="titre">Code QR</span>
+					<span class="titre">{{ $t('codeQR') }}</span>
 					<span class="fermer" role="button" tabindex="0" @click="modale = ''"><i class="material-icons">close</i></span>
 				</header>
 				<div class="conteneur">
@@ -684,10 +720,11 @@ export default {
 		return {
 			modale: '',
 			menu: '',
+			confirmation: '',
 			admin: false,
 			id: '',
 			question: '',
-			questions: ['Quel est mon mot préféré ?', 'Quel est mon film préféré ?', 'Quelle est ma chanson préférée ?', 'Quel est le prénom de ma mère ?', 'Quel est le prénom de mon père ?', 'Quel est le nom de ma rue ?', 'Quel est le nom de mon employeur ?', 'Quel est le nom de mon animal de compagnie ?'],
+			questions: ['motPrefere', 'filmPrefere', 'chansonPreferee', 'prenomMere', 'prenomPere', 'nomRue', 'nomEmployeur', 'nomAnimal'],
 			reponse: '',
 			nom: '',
 			nouveaunom: '',
@@ -710,6 +747,8 @@ export default {
 			depot: 'non',
 			travaux: [],
 			retroaction: '',
+			motdepasseRetroaction: '',
+			motdepasseTravail: '',
 			evaluation: [],
 			criteres: 'non',
 			listeCriteres: [],
@@ -767,7 +806,7 @@ export default {
 				}.bind(this), 300)
 			} else {
 				this.$parent.$parent.chargementParcours = false
-				this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+				this.$parent.$parent.message = this.$t('erreurServeur')
 			}
 		}.bind(this)
 		xhr.open('POST', this.$parent.$parent.hote + 'inc/recuperer_parcours.php', true)
@@ -782,7 +821,7 @@ export default {
 			}
 		})
 		clipboardLien.on('success', function () {
-			this.$parent.$parent.notification = 'Lien copié dans le presse-papier.'
+			this.$parent.$parent.notification = this.$t('lienCopie')
 		}.bind(this))
 		const iframe = '<iframe src="' + lien + '" allowfullscreen frameborder="0" width="100%" height="500"></iframe>'
 		const clipboardIframe = new ClipboardJS('#copier-iframe span', {
@@ -791,7 +830,7 @@ export default {
 			}
 		})
 		clipboardIframe.on('success', function () {
-			this.$parent.$parent.notification = 'Code d\'intégration copié dans le presse-papier.'
+			this.$parent.$parent.notification = this.$t('codeCopie')
 		}.bind(this))
 		// eslint-disable-next-line
 		this.codeqr = new QRCode('qr', {
@@ -843,6 +882,12 @@ export default {
 		definirDomaine (url) {
 			return (new URL(url)).hostname
 		},
+		modifierLangue (langue) {
+			this.$root.$i18n.locale = langue
+			this.$parent.$parent.langue = langue
+			document.getElementsByTagName('html')[0].setAttribute('lang', langue)
+			this.$parent.$parent.notification = this.$t('langueModifiee')
+		},
 		verifierJSON (json) {
 			try {
 				JSON.parse(json)
@@ -868,7 +913,7 @@ export default {
 					})
 					const span = document.createElement('span')
 					span.classList.add('lire')
-					span.textContent = 'Lire la suite'
+					span.textContent = this.$t('lireSuite')
 					texte.insertAdjacentElement('afterend', span)
 				}
 			})
@@ -879,7 +924,7 @@ export default {
 					const divs = document.querySelectorAll('#' + id + ' .texte div')
 					if (document.querySelector('#' + id + ' .texte').style.display === 'block') {
 						document.querySelector('#' + id + ' .texte').style.display = '-webkit-box'
-						balise.textContent = 'Lire la suite'
+						balise.textContent = this.$t('lireSuite')
 						divs.forEach(function (div, index) {
 							if (index > 0) {
 								div.style.display = 'none'
@@ -887,7 +932,7 @@ export default {
 						})
 					} else {
 						document.querySelector('#' + id + ' .texte').style.display = 'block'
-						balise.textContent = 'Réduire'
+						balise.textContent = this.$t('reduire')
 						divs.forEach(function (div) {
 							div.style.display = 'block'
 						})
@@ -966,6 +1011,7 @@ export default {
 		},
 		chargerEditeur () {
 			document.querySelector('#texte').innerHTML = ''
+			const that = this
 			const editeur = pell.init({
 				element: document.querySelector('#texte'),
 				onChange: function (html) {
@@ -977,14 +1023,14 @@ export default {
 					this.texte = texte
 				}.bind(this),
 				actions: [
-					{ name: 'gras', title: 'Gras', icon: '<i class="material-icons">format_bold</i>', result: () => pell.exec('bold') },
-					{ name: 'italique', title: 'Italique', icon: '<i class="material-icons">format_italic</i>', result: () => pell.exec('italic') },
-					{ name: 'souligne', title: 'Souligné', icon: '<i class="material-icons">format_underlined</i>', result: () => pell.exec('underline') },
-					{ name: 'barre', title: 'Barré', icon: '<i class="material-icons">format_strikethrough</i>', result: () => pell.exec('strikethrough') },
-					{ name: 'listeordonnee', title: 'Liste ordonnée', icon: '<i class="material-icons">format_list_numbered</i>', result: () => pell.exec('insertOrderedList') },
-					{ name: 'liste', title: 'Liste', icon: '<i class="material-icons">format_list_bulleted</i>', result: () => pell.exec('insertUnorderedList') },
-					{ name: 'couleur', title: 'Couleur du texte', icon: '<label for="couleur-texte"><i class="material-icons">format_color_text</i></label><input id="couleur-texte" type="color" style="display: none;">', result: () => undefined },
-					{ name: 'lien', title: 'Lien', icon: '<i class="material-icons">link</i>', result: () => { const url = window.prompt('Adresse du lien'); if (url) { pell.exec('createLink', url) } } }
+					{ name: 'gras', title: that.$t('gras'), icon: '<i class="material-icons">format_bold</i>', result: () => pell.exec('bold') },
+					{ name: 'italique', title: that.$t('italique'), icon: '<i class="material-icons">format_italic</i>', result: () => pell.exec('italic') },
+					{ name: 'souligne', title: that.$t('souligne'), icon: '<i class="material-icons">format_underlined</i>', result: () => pell.exec('underline') },
+					{ name: 'barre', title: that.$t('barre'), icon: '<i class="material-icons">format_strikethrough</i>', result: () => pell.exec('strikethrough') },
+					{ name: 'listeordonnee', title: that.$t('listeOrdonnee'), icon: '<i class="material-icons">format_list_numbered</i>', result: () => pell.exec('insertOrderedList') },
+					{ name: 'liste', title: that.$t('liste'), icon: '<i class="material-icons">format_list_bulleted</i>', result: () => pell.exec('insertUnorderedList') },
+					{ name: 'couleur', title: that.$t('couleurTexte'), icon: '<label for="couleur-texte"><i class="material-icons">format_color_text</i></label><input id="couleur-texte" type="color" style="display: none;">', result: () => undefined },
+					{ name: 'lien', title: that.$t('lien'), icon: '<i class="material-icons">link</i>', result: () => { const url = window.prompt(that.$t('adresseLien')); if (url) { pell.exec('createLink', url) } } }
 				],
 				classes: { actionbar: 'boutons-editeur', button: 'bouton-editeur', content: 'contenu-editeur', selected: 'bouton-actif' }
 			})
@@ -1113,34 +1159,34 @@ export default {
 		},
 		verifierBloc () {
 			if (this.titre === '') {
-				this.$parent.$parent.message = 'Veuillez donner un titre à cette étape.'
+				this.$parent.$parent.message = this.$t('donnerTitreEtape')
 				return false
 			} else if (this.type === '-') {
-				this.$parent.$parent.message = 'Veuillez choisir un type d\'étape.'
+				this.$parent.$parent.message = this.$t('choisirTypeEtape')
 				return false
 			} else if (this.type === 'seance' && (this.date === '' || this.debut === '' || this.fin === '' || this.lieu === '')) {
 				if (this.date === '') {
-					this.$parent.$parent.message = 'Veuillez indiquer une date.'
+					this.$parent.$parent.message = this.$t('indiquerDate')
 				} else if (this.debut === '') {
-					this.$parent.$parent.message = 'Veuillez indiquer un horaire de début.'
+					this.$parent.$parent.message = this.$t('indiquerHoraireDebut')
 				} else if (this.fin === '') {
-					this.$parent.$parent.message = 'Veuillez indiquer un horaire de fin.'
+					this.$parent.$parent.message = this.$t('indiquerHoraireFin')
 				} else if (this.lieu === '') {
-					this.$parent.$parent.message = 'Veuillez indiquer une adresse ou un lien de visioconférence.'
+					this.$parent.$parent.message = this.$t('indiquerAdresse')
 				}
 				return false
 			} else if ((this.type === 'document' || this.type === 'exercice' || this.type === 'activite') && (this.ressource === 'lien' && this.lien !== '' && this.verifierLien(this.lien) === false)) {
-				this.$parent.$parent.message = 'Veuillez indiquer un lien valide.'
+				this.$parent.$parent.message = this.$t('indiquerLienValide')
 				return false
 			} else if ((this.type === 'document' || this.type === 'exercice' || this.type === 'activite') && (this.ressource !== '-' && this.lien === '' && this.fichier === '')) {
 				if (this.ressource === 'lien' && this.lien === '') {
-					this.$parent.$parent.message = 'Veuillez indiquer un lien.'
+					this.$parent.$parent.message = this.$t('indiquerLien')
 				} else if (this.ressource === 'fichier' && this.fichier === '') {
-					this.$parent.$parent.message = 'Veuillez sélectionner un fichier.'
+					this.$parent.$parent.message = this.$t('indiquerFichier')
 				}
 				return false
 			} else if (this.type !== 'section' && (this.verrouillage === 'oui' && this.code === '')) {
-				this.$parent.$parent.message = 'Veuillez indiquer un code.'
+				this.$parent.$parent.message = this.$t('indiquerCode')
 				return false
 			} else if (this.type === 'activite' && this.criteres === 'oui') {
 				let criteresCorrects = 0
@@ -1150,10 +1196,10 @@ export default {
 					}
 				})
 				if (criteresCorrects < this.listeCriteres.length && this.listeCriteres.length === 1) {
-					this.$parent.$parent.message = 'Veuillez indiquer un libellé pour le critère.'
+					this.$parent.$parent.message = this.$t('indiquerLibelleCritere')
 					return false
 				} else if (criteresCorrects < this.listeCriteres.length && this.listeCriteres.length > 1) {
-					this.$parent.$parent.message = 'Veuillez indiquer un libellé pour chaque critère.'
+					this.$parent.$parent.message = this.$t('indiquerLibelleChaqueCritere')
 					return false
 				}
 			}
@@ -1174,7 +1220,7 @@ export default {
 						if (xhr.readyState === xhr.DONE && xhr.status === 200) {
 							this.progression = 0
 							if (xhr.responseText === 'erreur') {
-								this.$parent.$parent.message = 'Erreur lors du téléversement du fichier.'
+								this.$parent.$parent.message = this.$t('erreurTeleversement')
 								resolve('erreur')
 							} else {
 								this.modale = ''
@@ -1182,7 +1228,7 @@ export default {
 								resolve(xhr.responseText)
 							}
 						} else {
-							this.$parent.$parent.message = 'Erreur lors du téléversement du fichier.'
+							this.$parent.$parent.message = this.$t('erreurTeleversement')
 							resolve('erreur')
 						}
 					}.bind(this)
@@ -1195,7 +1241,7 @@ export default {
 					xhr.open('POST', this.$parent.$parent.hote + 'inc/televerser_fichier.php', true)
 					xhr.send(formData)
 				} else {
-					this.$parent.$parent.message = 'La taille maximale autorisée est 2 Mo.'
+					this.$parent.$parent.message = this.$t('tailleMax', { taille: 2 })
 					resolve('erreur')
 				}
 			}.bind(this))
@@ -1227,12 +1273,12 @@ export default {
 					this.$parent.$parent.chargement = false
 					this.fermerModaleContenu()
 					if (xhr.responseText === 'erreur') {
-						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+						this.$parent.$parent.message = this.$t('erreurServeur')
 					} else if (xhr.responseText === 'non_autorise') {
-						this.$parent.$parent.message = 'Vous n\'êtes pas autorisé à modifier ce parcours.'
+						this.$parent.$parent.message = this.$t('actionNonAutorisee')
 					} else if (xhr.responseText === 'parcours_modifie') {
 						this.blocs.push(bloc)
-						this.$parent.$parent.notification = 'Étape ajoutée.'
+						this.$parent.$parent.notification = this.$t('etapeAjoutee')
 						this.$nextTick(function () {
 							this.verifierTextes()
 						})
@@ -1240,7 +1286,7 @@ export default {
 				} else {
 					this.$parent.$parent.chargement = false
 					this.fermerModaleContenu()
-					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+					this.$parent.$parent.message = this.$t('erreurServeur')
 				}
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
@@ -1281,12 +1327,12 @@ export default {
 					this.$parent.$parent.chargement = false
 					this.fermerModaleContenu()
 					if (xhr.responseText === 'erreur') {
-						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+						this.$parent.$parent.message = this.$t('erreurServeur')
 					} else if (xhr.responseText === 'non_autorise') {
-						this.$parent.$parent.message = 'Vous n\'êtes pas autorisé à modifier ce parcours.'
+						this.$parent.$parent.message = this.$t('actionNonAutorisee')
 					} else if (xhr.responseText === 'parcours_modifie') {
 						this.blocs = blocs
-						this.$parent.$parent.notification = 'Étape modifiée.'
+						this.$parent.$parent.notification = this.$t('etapeModifiee')
 						this.$nextTick(function () {
 							this.verifierTextes()
 						})
@@ -1294,7 +1340,7 @@ export default {
 				} else {
 					this.$parent.$parent.chargement = false
 					this.fermerModaleContenu()
-					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+					this.$parent.$parent.message = this.$t('erreurServeur')
 				}
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
@@ -1340,11 +1386,11 @@ export default {
 					if (xhr.readyState === xhr.DONE && xhr.status === 200) {
 						this.$parent.$parent.chargementBlocs = false
 						if (xhr.responseText === 'non_autorise') {
-							this.$parent.$parent.message = 'Vous n\'êtes pas autorisé à modifier ce parcours.'
+							this.$parent.$parent.message = this.$t('actionNonAutorisee')
 						}
 					} else {
 						this.$parent.$parent.chargementBlocs = false
-						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+						this.$parent.$parent.message = this.$t('erreurServeur')
 					}
 				}.bind(this)
 				xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
@@ -1366,16 +1412,16 @@ export default {
 				if (xhr.readyState === xhr.DONE && xhr.status === 200) {
 					this.$parent.$parent.chargement = false
 					if (xhr.responseText === 'erreur') {
-						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+						this.$parent.$parent.message = this.$t('erreurServeur')
 					} else if (xhr.responseText === 'non_autorise') {
-						this.$parent.$parent.message = 'Vous n\'êtes pas autorisé à modifier ce parcours.'
+						this.$parent.$parent.message = this.$t('actionNonAutorisee')
 					} else if (xhr.responseText === 'parcours_modifie') {
 						this.blocs = blocs
-						this.$parent.$parent.notification = 'Visibilité de l\'étape modifiée.'
+						this.$parent.$parent.notification = this.$t('visibiliteModifiee')
 					}
 				} else {
 					this.$parent.$parent.chargement = false
-					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+					this.$parent.$parent.message = this.$t('erreurServeur')
 				}
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
@@ -1412,16 +1458,16 @@ export default {
 				if (xhr.readyState === xhr.DONE && xhr.status === 200) {
 					this.$parent.$parent.chargement = false
 					if (xhr.responseText === 'erreur') {
-						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+						this.$parent.$parent.message = this.$t('erreurServeur')
 					} else if (xhr.responseText === 'non_autorise') {
-						this.$parent.$parent.message = 'Vous n\'êtes pas autorisé à modifier ce parcours.'
+						this.$parent.$parent.message = this.$t('actionNonAutorisee')
 					} else if (xhr.responseText === 'parcours_modifie') {
 						this.blocs = blocs
-						this.$parent.$parent.notification = 'Étape supprimée.'
+						this.$parent.$parent.notification = this.$t('etapeSupprimee')
 					}
 				} else {
 					this.$parent.$parent.chargement = false
-					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+					this.$parent.$parent.message = this.$t('erreurServeur')
 				}
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
@@ -1448,66 +1494,71 @@ export default {
 			this.modale = 'travaux'
 		},
 		afficherRetroaction (travail) {
-			this.evaluation = []
-			this.motdepasse = travail.motdepasse
-			this.retroaction = travail.retroaction
-			if (travail.hasOwnProperty('evaluation') === true && this.listeCriteres.length > 0) {
-				this.listeCriteres.forEach(function (critere, index) {
-					if (!travail.evaluation[index]) {
-						travail.evaluation[index] = 0
-					} else if (parseInt(travail.evaluation[index]) > critere.etoiles) {
-						travail.evaluation[index] = critere.etoiles
+			if (parseInt(travail.motdepasse) === parseInt(this.motdepasseRetroaction)) {
+				this.motdepasseRetroaction = ''
+			} else {
+				this.evaluation = []
+				this.motdepasseRetroaction = travail.motdepasse
+				this.retroaction = travail.retroaction
+				if (travail.hasOwnProperty('evaluation') === true && this.listeCriteres.length > 0) {
+					this.listeCriteres.forEach(function (critere, index) {
+						if (!travail.evaluation[index]) {
+							travail.evaluation[index] = 0
+						} else if (parseInt(travail.evaluation[index]) > critere.etoiles) {
+							travail.evaluation[index] = critere.etoiles
+						}
+					})
+					this.evaluation = travail.evaluation
+				} else if (!travail.hasOwnProperty('evaluation') && this.listeCriteres.length > 0) {
+					this.listeCriteres.forEach(function () {
+						this.evaluation.push(0)
+					}.bind(this))
+				}
+				this.$nextTick(function () {
+					document.querySelector('#retroaction').innerHTML = ''
+					const that = this
+					const editeur = pell.init({
+						element: document.querySelector('#retroaction'),
+						onChange: function (html) {
+							let texte = html.replace(/(<a [^>]*)(target="[^"]*")([^>]*>)/gi, '$1$3')
+							texte = texte.replace(/(<a [^>]*)(>)/gi, '$1 target="_blank"$2')
+							texte = linkifyHtml(texte, {
+								defaultProtocol: 'https'
+							})
+							this.retroaction = texte
+						}.bind(this),
+						actions: [
+							{ name: 'gras', title: that.$t('gras'), icon: '<i class="material-icons">format_bold</i>', result: () => pell.exec('bold') },
+							{ name: 'italique', title: that.$t('italique'), icon: '<i class="material-icons">format_italic</i>', result: () => pell.exec('italic') },
+							{ name: 'souligne', title: that.$t('souligne'), icon: '<i class="material-icons">format_underlined</i>', result: () => pell.exec('underline') },
+							{ name: 'barre', title: that.$t('barre'), icon: '<i class="material-icons">format_strikethrough</i>', result: () => pell.exec('strikethrough') },
+							{ name: 'listeordonnee', title: that.$t('listeOrdonnee'), icon: '<i class="material-icons">format_list_numbered</i>', result: () => pell.exec('insertOrderedList') },
+							{ name: 'liste', title: that.$t('liste'), icon: '<i class="material-icons">format_list_bulleted</i>', result: () => pell.exec('insertUnorderedList') },
+							{ name: 'couleur', title: that.$t('couleurTexte'), icon: '<label for="couleur-retroaction"><i class="material-icons">format_color_text</i></label><input id="couleur-retroaction" type="color" style="display: none;">', result: () => undefined },
+							{ name: 'lien', title: that.$t('lien'), icon: '<i class="material-icons">link</i>', result: () => { const url = window.prompt(that.$t('adresseLien')); if (url) { pell.exec('createLink', url) } } }
+						],
+						classes: { actionbar: 'boutons-editeur', button: 'bouton-editeur', content: 'contenu-editeur', selected: 'bouton-actif' }
+					})
+					editeur.content.innerHTML = this.retroaction
+					editeur.onpaste = function (event) {
+						event.preventDefault()
+						event.stopPropagation()
+						const texte = event.clipboardData.getData('text/plain')
+						pell.exec('insertText', texte)
 					}
-				})
-				this.evaluation = travail.evaluation
-			} else if (!travail.hasOwnProperty('evaluation') && this.listeCriteres.length > 0) {
-				this.listeCriteres.forEach(function () {
-					this.evaluation.push(0)
+					document.querySelector('#retroaction .contenu-editeur').addEventListener('focus', function () {
+						document.querySelector('#retroaction').classList.add('focus')
+					})
+					document.querySelector('#retroaction .contenu-editeur').addEventListener('blur', function () {
+						document.querySelector('#retroaction').classList.remove('focus')
+					})
+					document.querySelector('#couleur-retroaction').addEventListener('change', this.modifierCouleurRetroaction)
 				}.bind(this))
 			}
-			this.$nextTick(function () {
-				document.querySelector('#retroaction').innerHTML = ''
-				const editeur = pell.init({
-					element: document.querySelector('#retroaction'),
-					onChange: function (html) {
-						let texte = html.replace(/(<a [^>]*)(target="[^"]*")([^>]*>)/gi, '$1$3')
-						texte = texte.replace(/(<a [^>]*)(>)/gi, '$1 target="_blank"$2')
-						texte = linkifyHtml(texte, {
-							defaultProtocol: 'https'
-						})
-						this.retroaction = texte
-					}.bind(this),
-					actions: [
-						{ name: 'gras', title: 'Gras', icon: '<i class="material-icons">format_bold</i>', result: () => pell.exec('bold') },
-						{ name: 'italique', title: 'Italique', icon: '<i class="material-icons">format_italic</i>', result: () => pell.exec('italic') },
-						{ name: 'souligne', title: 'Souligné', icon: '<i class="material-icons">format_underlined</i>', result: () => pell.exec('underline') },
-						{ name: 'barre', title: 'Barré', icon: '<i class="material-icons">format_strikethrough</i>', result: () => pell.exec('strikethrough') },
-						{ name: 'listeordonnee', title: 'Liste ordonnée', icon: '<i class="material-icons">format_list_numbered</i>', result: () => pell.exec('insertOrderedList') },
-						{ name: 'liste', title: 'Liste', icon: '<i class="material-icons">format_list_bulleted</i>', result: () => pell.exec('insertUnorderedList') },
-						{ name: 'couleur', title: 'Couleur du texte', icon: '<label for="couleur-retroaction"><i class="material-icons">format_color_text</i></label><input id="couleur-retroaction" type="color" style="display: none;">', result: () => undefined },
-						{ name: 'lien', title: 'Lien', icon: '<i class="material-icons">link</i>', result: () => { const url = window.prompt('Adresse du lien'); if (url) { pell.exec('createLink', url) } } }
-					],
-					classes: { actionbar: 'boutons-editeur', button: 'bouton-editeur', content: 'contenu-editeur', selected: 'bouton-actif' }
-				})
-				editeur.content.innerHTML = this.retroaction
-				editeur.onpaste = function (event) {
-					event.preventDefault()
-					event.stopPropagation()
-					const texte = event.clipboardData.getData('text/plain')
-					pell.exec('insertText', texte)
-				}
-				document.querySelector('#retroaction .contenu-editeur').addEventListener('focus', function () {
-					document.querySelector('#retroaction').classList.add('focus')
-				})
-				document.querySelector('#retroaction .contenu-editeur').addEventListener('blur', function () {
-					document.querySelector('#retroaction').classList.remove('focus')
-				})
-				document.querySelector('#couleur-retroaction').addEventListener('change', this.modifierCouleurRetroaction)
-			})
 		},
 		enregistrerRetroaction () {
 			if (this.retroaction === '') {
-				this.$parent.$parent.message = 'Veuillez ajouter un commentaire.'
+				this.$parent.$parent.message = this.$t('indiquerCommentaire')
 				return false
 			}
 			if (this.listeCriteres.length > 0) {
@@ -1518,18 +1569,17 @@ export default {
 					}
 				})
 				if (criteresEvalues !== this.listeCriteres.length) {
-					this.$parent.$parent.message = 'Veuillez compléter tous les critères.'
+					this.$parent.$parent.message = this.$t('remplirCriteres')
 					return false
 				}
 			}
-			this.$parent.$parent.chargement = true
+			this.$parent.$parent.chargementBlocs = true
 			const blocs = JSON.parse(JSON.stringify(this.blocs))
 			blocs.forEach(function (bloc) {
 				if (bloc.id === this.blocId) {
 					bloc.travaux.forEach(function (travail) {
-						if (parseInt(travail.motdepasse) === parseInt(this.motdepasse)) {
+						if (parseInt(travail.motdepasse) === parseInt(this.motdepasseRetroaction)) {
 							travail.retroaction = this.retroaction
-
 							travail.evaluation = this.evaluation
 						}
 					}.bind(this))
@@ -1537,7 +1587,7 @@ export default {
 			}.bind(this))
 			const travaux = JSON.parse(JSON.stringify(this.travaux))
 			travaux.forEach(function (travail) {
-				if (parseInt(travail.motdepasse) === parseInt(this.motdepasse)) {
+				if (parseInt(travail.motdepasse) === parseInt(this.motdepasseRetroaction)) {
 					travail.retroaction = this.retroaction
 					travail.evaluation = this.evaluation
 				}
@@ -1545,18 +1595,18 @@ export default {
 			const xhr = new XMLHttpRequest()
 			xhr.onload = function () {
 				if (xhr.readyState === xhr.DONE && xhr.status === 200) {
-					this.$parent.$parent.chargement = false
+					this.$parent.$parent.chargementBlocs = false
 					if (xhr.responseText === 'non_autorise') {
-						this.$parent.$parent.message = 'Vous n\'êtes pas autorisé à modifier ce parcours.'
+						this.$parent.$parent.message = this.$t('actionNonAutorisee')
 					} else if (xhr.responseText === 'parcours_modifie') {
 						this.blocs = blocs
 						this.travaux = travaux
-						this.motdepasse = ''
-						this.$parent.$parent.notification = 'Rétroaction enregistrée.'
+						this.motdepasseRetroaction = ''
+						this.$parent.$parent.notification = this.$t('evaluationEnregistree')
 					}
 				} else {
-					this.$parent.$parent.chargement = false
-					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+					this.$parent.$parent.chargementBlocs = false
+					this.$parent.$parent.message = this.$t('erreurServeur')
 				}
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
@@ -1565,7 +1615,64 @@ export default {
 			xhr.send(JSON.stringify(json))
 		},
 		annulerRetroaction () {
-			this.motdepasse = ''
+			this.motdepasseRetroaction = ''
+		},
+		afficherSupprimerTravail (motdepasse) {
+			this.confirmation = 'supprimer-travail'
+			this.motdepasseTravail = motdepasse
+		},
+		annulerSupprimerTravail () {
+			this.confirmation = ''
+			this.motdepasseTravail = ''
+		},
+		supprimerTravail () {
+			this.confirmation = ''
+			this.$parent.$parent.chargementBlocs = true
+			const blocs = JSON.parse(JSON.stringify(this.blocs))
+			let travaux = []
+			const fichiers = []
+			blocs.forEach(function (item, indexBloc) {
+				if (item.id === this.blocId) {
+					item.travaux.forEach(function (travail, indexTravail) {
+						if (parseInt(travail.motdepasse) === parseInt(this.motdepasseTravail)) {
+							if (travail.fichier !== '') {
+								fichiers.push(travail.fichier)
+							}
+							blocs[indexBloc].travaux.splice(indexTravail, 1)
+							travaux = blocs[indexBloc].travaux
+						}
+					}.bind(this))
+				}
+			}.bind(this))
+			const xhr = new XMLHttpRequest()
+			xhr.onload = function () {
+				if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+					this.$parent.$parent.chargementBlocs = false
+					if (xhr.responseText === 'erreur') {
+						this.$parent.$parent.message = this.$t('erreurServeur')
+					} else if (xhr.responseText === 'non_autorise') {
+						this.$parent.$parent.message = this.$t('actionNonAutorisee')
+					} else if (xhr.responseText === 'parcours_modifie') {
+						this.blocs = blocs
+						this.travaux = travaux
+						if (this.travaux.length === 0) {
+							this.fermerModaleTravaux()
+						}
+						if (parseInt(this.motdepasseTravail) === parseInt(this.motdepasseRetroaction)) {
+							this.motdepasseRetroaction = ''
+						}
+						this.motdepasseTravail = ''
+						this.$parent.$parent.notification = this.$t('travailSupprime')
+					}
+				} else {
+					this.$parent.$parent.chargementBlocs = false
+					this.$parent.$parent.message = this.$t('erreurServeur')
+				}
+			}.bind(this)
+			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
+			xhr.setRequestHeader('Content-type', 'application/json')
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), fichiers: JSON.stringify(fichiers) }
+			xhr.send(JSON.stringify(json))
 		},
 		fermerModaleTravaux () {
 			this.modale = ''
@@ -1574,7 +1681,8 @@ export default {
 			this.listeCriteres = []
 			this.retroaction = ''
 			this.evaluation = []
-			this.motdepasse = ''
+			this.motdepasseRetroaction = ''
+			this.motdepasseTravail = ''
 		},
 		debloquerEtape (id) {
 			const code = document.querySelector('#' + id + ' input[type="text"]').value
@@ -1591,12 +1699,12 @@ export default {
 					setTimeout(function () {
 						this.chargement = false
 						this.blocId = ''
-						this.$parent.$parent.notification = 'Étape débloquée.'
+						this.$parent.$parent.notification = this.$t('etapeDebloquee')
 					}.bind(this), 300)
 				}
 			}.bind(this))
 			if (etapeDebloquee === false) {
-				this.$parent.$parent.message = 'Code d\'accès incorrect.'
+				this.$parent.$parent.message = this.$t('codeIncorrect')
 			}
 		},
 		ouvrirModaleDepot (id) {
@@ -1621,16 +1729,16 @@ export default {
 		},
 		async deposer () {
 			if (this.pseudo === '') {
-				this.$parent.$parent.message = 'Veuillez indiquer un nom ou un pseudo.'
+				this.$parent.$parent.message = this.$t('indiquerNom')
 				return false
 			} else if (this.ressource === 'lien' && this.lien !== '' && this.verifierLien(this.lien) === false) {
-				this.$parent.$parent.message = 'Veuillez indiquer un lien valide.'
+				this.$parent.$parent.message = this.$t('indiquerLienValide')
 				return false
 			} else if (this.lien === '' && this.fichier === '') {
 				if (this.ressource === 'lien' && this.lien === '') {
-					this.$parent.$parent.message = 'Veuillez indiquer un lien.'
+					this.$parent.$parent.message = this.$t('indiquerLien')
 				} else if (this.ressource === 'fichier' && this.fichier === '') {
-					this.$parent.$parent.message = 'Veuillez sélectionner un fichier.'
+					this.$parent.$parent.message = this.$t('indiquerFichier')
 				}
 				return false
 			}
@@ -1674,15 +1782,15 @@ export default {
 					this.$parent.$parent.chargement = false
 					this.fermerModaleDepot()
 					if (xhr.responseText === 'erreur') {
-						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+						this.$parent.$parent.message = this.$t('erreurServeur')
 					} else if (xhr.responseText === 'travail_depose') {
 						this.blocs = blocs
-						this.$parent.$parent.notification = 'Travail déposé.'
+						this.$parent.$parent.notification = this.$t('travailDepose')
 					}
 				} else {
 					this.$parent.$parent.chargement = false
 					this.fermerModaleDepot()
-					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+					this.$parent.$parent.message = this.$t('erreurServeur')
 				}
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/deposer_travail.php', true)
@@ -1692,7 +1800,7 @@ export default {
 		},
 		verifier () {
 			if (this.motdepasse === '') {
-				this.$parent.$parent.message = 'Veuillez indiquer un mot de passe.'
+				this.$parent.$parent.message = this.$t('indiquerMotDePasse')
 				return false
 			}
 			this.blocs.forEach(function (item) {
@@ -1722,10 +1830,56 @@ export default {
 						}
 					}.bind(this))
 					if (motdepasseExiste === false) {
-						this.$parent.$parent.message = 'Ce mot de passe n\'existe pas.'
+						this.$parent.$parent.message = this.$t('motDePasseExistePas')
 					}
 				}
 			}.bind(this))
+		},
+		afficherSupprimerDepot () {
+			this.confirmation = 'supprimer-depot'
+		},
+		supprimerDepot () {
+			this.confirmation = ''
+			let fichierasupprimer = ''
+			if (this.fichier !== '') {
+				fichierasupprimer = this.fichier
+			}
+			const blocs = JSON.parse(JSON.stringify(this.blocs))
+			blocs.forEach(function (bloc, indexBloc) {
+				if (bloc.id === this.blocId) {
+					bloc.travaux.forEach(function (travail, indexTravail) {
+						if (parseInt(travail.motdepasse) === parseInt(this.motdepasse)) {
+							blocs[indexBloc].travaux.splice(indexTravail, 1)
+						}
+					}.bind(this))
+				}
+			}.bind(this))
+			this.$parent.$parent.chargementBlocs = true
+			const xhr = new XMLHttpRequest()
+			xhr.onload = function () {
+				if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+					this.$parent.$parent.chargementBlocs = false
+					this.fermerModaleDepot()
+					if (xhr.responseText === 'erreur') {
+						this.$parent.$parent.message = this.$t('erreurServeur')
+					} else if (xhr.responseText === 'travail_supprime') {
+						this.blocs = blocs
+						this.$parent.$parent.notification = this.$t('travailSupprime')
+					}
+				} else {
+					this.$parent.$parent.chargement = false
+					this.fermerModaleDepot()
+					this.$parent.$parent.message = this.$t('erreurServeur')
+				}
+			}.bind(this)
+			xhr.open('POST', this.$parent.$parent.hote + 'inc/supprimer_travail.php', true)
+			xhr.setRequestHeader('Content-type', 'application/json')
+			console.log(this.id)
+			console.log(this.blocId)
+			console.log(this.motdepasse)
+			console.log(fichierasupprimer)
+			const json = { parcours: this.id, id: this.blocId, motdepasse: this.motdepasse, fichierasupprimer: fichierasupprimer }
+			xhr.send(JSON.stringify(json))
 		},
 		fermerModaleDepot () {
 			this.blocId = ''
@@ -1770,25 +1924,25 @@ export default {
 						this.$parent.$parent.chargement = false
 						this.fermerModaleNomParcours()
 						if (xhr.responseText === 'erreur') {
-							this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+							this.$parent.$parent.message = this.$t('erreurServeur')
 						} else if (xhr.responseText === 'non_autorise') {
-							this.$parent.$parent.message = 'Vous n\'êtes pas autorisé à modifier ce parcours.'
+							this.$parent.$parent.message = this.$t('actionNonAutorisee')
 						} else if (xhr.responseText === 'nom_modifie') {
 							this.nom = nom
-							this.$parent.$parent.notification = 'Nom modifié.'
+							this.$parent.$parent.notification = this.$t('nomModifie')
 							document.title = this.nom + ' - Digisteps by La Digitale'
 						}
 					} else {
 						this.$parent.$parent.chargement = false
 						this.fermerModaleNomParcours()
-						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+						this.$parent.$parent.message = this.$t('erreurServeur')
 					}
 				}.bind(this)
 				xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_nom_parcours.php', true)
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
 				xhr.send('parcours=' + this.id + '&nouveaunom=' + nom)
 			} else if (this.nouveaunom === '') {
-				this.$parent.$parent.message = 'Veuillez compléter le champ «&nbsp;Nouveau nom&nbsp;».'
+				this.$parent.$parent.message = this.$t('remplirChampNouveauNom')
 			}
 		},
 		ouvrirModaleAccesParcours () {
@@ -1810,31 +1964,29 @@ export default {
 						this.$parent.$parent.chargement = false
 						this.fermerModaleAccesParcours()
 						if (xhr.responseText === 'erreur') {
-							this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+							this.$parent.$parent.message = this.$t('erreurServeur')
 						} else if (xhr.responseText === 'non_autorise') {
-							this.$parent.$parent.message = 'La question et la réponse secrètes ne sont pas correctes.'
+							this.$parent.$parent.message = this.$t('informationsIncorrectes')
 						} else if (xhr.responseText === 'acces_modifie') {
-							this.$parent.$parent.notification = 'Accès modifié.'
+							this.$parent.$parent.notification = this.$t('accesModifie')
 						}
 					} else {
 						this.$parent.$parent.chargement = false
 						this.fermerModaleAccesParcours()
-						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+						this.$parent.$parent.message = this.$t('erreurServeur')
 					}
 				}.bind(this)
 				xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_acces_parcours.php', true)
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
 				xhr.send('parcours=' + this.id + '&question=' + this.question + '&reponse=' + this.reponse + '&nouvellequestion=' + this.nouvellequestion + '&nouvellereponse=' + this.nouvellereponse)
-			} else {
-				if (this.question === '') {
-					this.$parent.$parent.message = 'Veuillez sélectionner votre question secrète actuelle.'
-				} else if (this.reponse === '') {
-					this.$parent.$parent.message = 'Veuillez indiquer votre réponse secrète actuelle.'
-				} else if (this.nouvellequestion === '') {
-					this.$parent.$parent.message = 'Veuillez sélectionner une nouvelle question secrète.'
-				} else if (this.nouvellereponse === '') {
-					this.$parent.$parent.message = 'Veuillez indiquer une nouvelle réponse secrète.'
-				}
+			} else if (this.question === '') {
+				this.$parent.$parent.message = this.$t('selectionnerQuestionSecreteActuelle')
+			} else if (this.reponse === '') {
+				this.$parent.$parent.message = this.$t('indiquerReponseSecreteActuelle')
+			} else if (this.nouvellequestion === '') {
+				this.$parent.$parent.message = this.$t('selectionnerNouvelleQuestionSecrete')
+			} else if (this.nouvellereponse === '') {
+				this.$parent.$parent.message = this.$t('indiquerNouvelleReponseSecrete')
 			}
 		},
 		ouvrirModaleConnexion () {
@@ -1854,12 +2006,12 @@ export default {
 						this.$parent.$parent.chargement = false
 						this.fermerModaleConnexion()
 						if (xhr.responseText === 'erreur') {
-							this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+							this.$parent.$parent.message = this.$t('erreurServeur')
 						} else if (xhr.responseText === 'non_autorise') {
-							this.$parent.$parent.message = 'La question et la réponse secrètes ne sont pas correctes.'
+							this.$parent.$parent.message = this.$t('informationsIncorrectes')
 						} else if (xhr.responseText === 'parcours_debloque') {
 							this.admin = true
-							this.$parent.$parent.notification = 'Parcours débloqué.'
+							this.$parent.$parent.notification = this.$t('parcoursDebloque')
 							this.$nextTick(function () {
 								this.verifierTextes()
 							})
@@ -1867,18 +2019,16 @@ export default {
 					} else {
 						this.$parent.$parent.chargement = false
 						this.fermerModaleConnexion()
-						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+						this.$parent.$parent.message = this.$t('erreurServeur')
 					}
 				}.bind(this)
 				xhr.open('POST', this.$parent.$parent.hote + 'inc/ouvrir_parcours.php', true)
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
 				xhr.send('parcours=' + this.id + '&question=' + this.question + '&reponse=' + this.reponse)
-			} else {
-				if (this.question === '') {
-					this.$parent.$parent.message = 'Veuillez sélectionner une question secrète.'
-				} else if (this.reponse === '') {
-					this.$parent.$parent.message = 'Veuillez complétez le champ «&nbsp;Réponse secrète&nbsp;».'
-				}
+			} else if (this.question === '') {
+				this.$parent.$parent.message = this.$t('selectionnerQuestionSecrete')
+			} else if (this.reponse === '') {
+				this.$parent.$parent.message = this.$t('remplirReponseSecrete')
 			}
 		},
 		terminerSession () {
@@ -1890,7 +2040,7 @@ export default {
 					if (xhr.responseText === 'session_terminee') {
 						this.fermerModaleParcours()
 						this.admin = false
-						this.$parent.$parent.notification = 'Session terminée.'
+						this.$parent.$parent.notification = this.$t('sessionTerminee')
 						this.$nextTick(function () {
 							this.verifierTextes()
 						})
@@ -1898,7 +2048,7 @@ export default {
 				} else {
 					this.$parent.$parent.chargement = false
 					this.fermerModaleParcours()
-					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+					this.$parent.$parent.message = this.$t('erreurServeur')
 				}
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/terminer_session_parcours.php', true)
@@ -1906,17 +2056,17 @@ export default {
 			xhr.send('parcours=' + this.id)
 		},
 		afficherSupprimerParcours () {
-			this.modale = 'supprimer-parcours'
+			this.confirmation = 'supprimer-parcours'
 		},
 		supprimerParcours () {
-			this.modale = ''
+			this.confirmation = ''
 			this.$parent.$parent.chargement = true
 			const xhr = new XMLHttpRequest()
 			xhr.onload = function () {
 				if (xhr.readyState === xhr.DONE && xhr.status === 200) {
 					this.$parent.$parent.chargement = false
 					if (xhr.responseText === 'erreur') {
-						this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+						this.$parent.$parent.message = this.$t('erreurServeur')
 					} else if (xhr.responseText === 'parcours_supprime') {
 						document.title = 'Digisteps by La Digitale'
 						this.$router.push('/')
@@ -1924,7 +2074,7 @@ export default {
 				} else {
 					this.$parent.$parent.chargement = false
 					this.fermerModaleConnexion()
-					this.$parent.$parent.message = 'Erreur de communication avec le serveur.'
+					this.$parent.$parent.message = this.$t('erreurServeur')
 				}
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/supprimer_parcours.php', true)
@@ -2505,6 +2655,7 @@ section {
 
 #travaux .travail .boutons {
 	padding: 0 15px 10px;
+	font-size: 0;
 }
 
 #travaux .travail .bouton {
@@ -2517,6 +2668,15 @@ section {
 	font-weight: 400;
 	letter-spacing: 0;
 	text-indent: 0;
+}
+
+#travaux .travail .bouton.evaluer {
+	background: #00a885;
+	color: #fff;
+}
+
+#travaux .travail .bouton.evaluer:hover {
+	background: #00896c;
 }
 
 #travaux .travail .bouton:not(.icone) {
@@ -2631,6 +2791,15 @@ section {
 	margin-bottom: 20px;
 	margin-left: 10px;
 	margin-right: 10px;
+}
+
+#fichier {
+	display: flex;
+	margin-bottom: 20px;
+}
+
+#fichier .bouton {
+	margin-bottom: 0;
 }
 
 #fichier .bouton + .bouton {
@@ -2805,6 +2974,10 @@ section {
 	margin-bottom: 0;
 }
 
+#travail .bouton.large.rouge {
+	margin-top: 20px;
+}
+
 #valider {
 	position: absolute;
 	display: flex;
@@ -2868,6 +3041,35 @@ section {
 
 .modale .bouton.rouge:hover {
 	background: #d70b00;
+}
+
+.modale .langue {
+	margin-bottom: 20px;
+}
+
+.modale .langue span {
+	display: inline-flex;
+	width: 45px;
+	height: 45px;
+	justify-content: center;
+	align-items: center;
+	line-height: 1;
+	font-size: 20px;
+	border-radius: 50%;
+	margin-right: 10px;
+	border: 1px solid #ddd;
+	cursor: pointer;
+	user-select: none;
+}
+
+.modale .langue span.selectionne {
+	background: #444;
+	color: #fff;
+	border: 1px solid #222;
+}
+
+.modale .langue span:last-child {
+	margin-right: 0;
 }
 
 .modale.confirmation .conteneur {
@@ -3014,6 +3216,15 @@ section {
 
 	#travaux .travail .meta .motdepasse {
 		font-size: 12px!important;
+	}
+}
+
+@media screen and (max-width: 767px) {
+	.modale .langue span {
+		width: 40px;
+		height: 40px;
+		font-size: 18px;
+		margin-right: 9px;
 	}
 }
 
