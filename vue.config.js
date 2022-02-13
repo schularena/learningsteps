@@ -24,8 +24,7 @@ module.exports = {
 			{
 				from: path.resolve(__dirname, 'fichiers'),
 				to: path.resolve(__dirname, 'dist/fichiers'),
-				toType: 'dir',
-				ignore: ['.gitignore']
+				toType: 'dir'
 			},
 			{
 				from: path.resolve(__dirname, 'README.md'),
