@@ -22,6 +22,12 @@ module.exports = {
 				ignore: ['.gitignore']
 			},
 			{
+				from: path.resolve(__dirname, 'fichiers'),
+				to: path.resolve(__dirname, 'dist/fichiers'),
+				toType: 'dir',
+				ignore: ['.gitignore']
+			},
+			{
 				from: path.resolve(__dirname, 'README.md'),
 				to: path.resolve(__dirname, 'dist'),
 				toType: 'dir'
