@@ -1,6 +1,6 @@
 {
   "name": "digisteps",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "homepage": "https://ladigitale.dev/digisteps/",
   "repository": {
     "type": "git",
@@ -28,6 +28,7 @@
     "pell": "^1.0.6",
     "vue": "^3.2.26",
     "vue-draggable-next": "^2.1.1",
+    "vue-i18n": "^9.1.9",
     "vue-router": "^4.0.10"
   },
   "devDependencies": {
