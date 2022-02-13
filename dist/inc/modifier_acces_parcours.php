@@ -22,7 +22,37 @@ if (!empty($_POST['parcours']) && !empty($_POST['question']) && !empty($_POST['r
 	$stmt = $db->prepare('SELECT question, reponse FROM digisteps_parcours WHERE url = :url');
 	if ($stmt->execute(array('url' => $parcours))) {
 		$resultat = $stmt->fetchAll();
-		if ($question === $resultat[0]['question'] && password_verify($reponse, $resultat[0]['reponse'])) {
+		$questionSecrete = '';
+		switch ($resultat[0]['question']) {
+			case 'Quel est mon mot préféré ?':
+				$questionSecrete = 'motPrefere';
+				break;
+			case 'Quel est mon film préféré ?':
+				$questionSecrete = 'filmPrefere';
+				break;
+			case 'Quelle est ma chanson préférée ?':
+				$questionSecrete = 'chansonPreferee';
+				break;
+			case 'Quel est le prénom de ma mère ?':
+				$questionSecrete = 'prenomMere';
+				break;
+			case 'Quel est le prénom de mon père ?':
+				$questionSecrete = 'prenomPere';
+				break;
+			case 'Quel est le nom de ma rue ?':
+				$questionSecrete = 'nomRue';
+				break;
+			case 'Quel est le nom de mon employeur ?':
+				$questionSecrete = 'nomEmployeur';
+				break;
+			case 'Quel est le nom de mon animal de compagnie ?':
+				$questionSecrete = 'nomAnimal';
+				break;
+			default:
+				$questionSecrete = $resultat[0]['question'];
+		}
+		$reponseSecrete = $resultat[0]['reponse'];
+		if ($question === $questionSecrete && password_verify($reponse, $reponseSecrete)) {
 			$nouvellequestion = $_POST['nouvellequestion'];
 			$nouvellereponse = password_hash(strtolower($_POST['nouvellereponse']), PASSWORD_DEFAULT);
 			$stmt = $db->prepare('UPDATE digisteps_parcours SET question = :nouvellequestion, reponse = :nouvellereponse WHERE url = :url');
