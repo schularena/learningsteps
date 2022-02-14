@@ -916,7 +916,7 @@ export default {
 					span.textContent = this.$t('lireSuite')
 					texte.insertAdjacentElement('afterend', span)
 				}
-			})
+			}.bind(this))
 			balises = document.querySelectorAll('.lire')
 			balises.forEach(function (balise) {
 				balise.addEventListener('click', function () {
@@ -937,8 +937,8 @@ export default {
 							div.style.display = 'block'
 						})
 					}
-				})
-			})
+				}.bind(this))
+			}.bind(this))
 		},
 		afficherMenuPartager () {
 			this.menu = 'partager'
