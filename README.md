@@ -26,7 +26,7 @@ php -S 127.0.0.1:8000 (pour le développement uniquement)
 ```
 
 ### Production
-Le dossier dist peut être déployé directement sur un serveur PHP avec l'extension SQLite activée.
+Le dossier dist peut être déployé directement sur un serveur PHP avec l'extension SQLite activée. La librairie GD est nécessaire pour créer les vignettes.
 
 ### Démo
 https://ladigitale.dev/digisteps/
