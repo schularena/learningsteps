@@ -383,8 +383,10 @@ main {
 }
 
 .boutons-editeur button {
+	display: inline-flex;
+	align-items: center;
 	font-size: 24px;
-	width: 24px;
+	min-width: 24px;
 	height: 24px;
 	text-align: center;
 	color: #222;
@@ -398,8 +400,28 @@ main {
 .boutons-editeur button label[for="couleur-retroaction"],
 .boutons-editeur button label[for="couleur-texte"] {
 	font-size: 19px!important;
+	width: auto!important;
 	margin: 0!important;
 	line-height: 24px!important;
+}
+
+.boutons-editeur input[type="color"] {
+	width: 18px;
+	height: 18px;
+	margin-left: 4px;
+	padding: 0;
+	border: none;
+	cursor: pointer;
+}
+
+.boutons-editeur input[type="color"]::-moz-color-swatch {
+	border: none;
+	border-radius: 50%;
+}
+
+.boutons-editeur input[type="color"]::-webkit-color-swatch {
+	border: none;
+	border-radius: 50%;
 }
 
 #texte .boutons-editeur {
