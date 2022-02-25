@@ -781,9 +781,8 @@ export default {
 		this.id = this.$route.params.id
 		const langue = this.$route.query.lang
 		if (this.$parent.$parent.langues.includes(langue) === true) {
-			this.$root.$i18n.locale = langue
 			this.$parent.$parent.langue = langue
-			document.getElementsByTagName('html')[0].setAttribute('lang', langue)
+			localStorage.setItem('digisteps_lang', langue)
 		}
 		this.$parent.$parent.chargement = false
 		const xhr = new XMLHttpRequest()
@@ -824,10 +823,13 @@ export default {
 	mounted () {
 		const langue = navigator.language.substring(0, 2)
 		if (this.$parent.$parent.langues.includes(this.$route.query.lang) === false && this.$parent.$parent.langues.includes(langue) === true) {
-			this.$root.$i18n.locale = langue
 			this.$parent.$parent.langue = langue
-			document.getElementsByTagName('html')[0].setAttribute('lang', langue)
 		}
+		if (localStorage.getItem('digisteps_lang')) {
+			this.$parent.$parent.langue = localStorage.getItem('digisteps_lang')
+		}
+		this.$root.$i18n.locale = this.$parent.$parent.langue
+		document.getElementsByTagName('html')[0].setAttribute('lang', this.$parent.$parent.langue)
 		const lien = this.definirRacine() + '#/s/' + this.id
 		const clipboardLien = new ClipboardJS('#copier-lien .lien', {
 			text: function () {
@@ -901,6 +903,7 @@ export default {
 			this.$parent.$parent.langue = langue
 			document.getElementsByTagName('html')[0].setAttribute('lang', langue)
 			this.$parent.$parent.notification = this.$t('langueModifiee')
+			localStorage.setItem('digisteps_lang', langue)
 		},
 		verifierJSON (json) {
 			try {
