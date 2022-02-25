@@ -41,7 +41,7 @@
 					<div id="actions" v-if="admin">
 						<span id="ajouter" class="bouton" role="button" tabindex="0" @click="ouvrirModaleBloc('creation', '')">{{ $t('ajouterEtape') }}</span>
 					</div>
-					<draggable id="blocs" class="admin" v-model="blocs" :animation="250" :sort="true" :swap-threshold="0.5" :force-fallback="true" :fallback-tolerance="10" filter=".statique, .lire" draggable=".bloc" @end="modifierPositionBloc" v-if="blocs.length > 0 && admin">
+					<draggable id="blocs" class="admin" v-model="blocs" :animation="250" :sort="true" :swap-threshold="0.5" :force-fallback="true" :fallback-tolerance="10" filter=".statique, .lire" :preventOnFilter="false" draggable=".bloc" @end="modifierPositionBloc" v-if="blocs.length > 0 && admin">
 						<template v-for="(bloc, indexBloc) in blocs" :key="'bloc_' + indexBloc">
 							<article :id="bloc.id" class="bloc section" :class="{'invisible': bloc.visibilite === false}" v-if="bloc.type === 'section'">
 								<div class="contenu">
@@ -71,6 +71,7 @@
 									</div>
 									<span class="lieu" v-if="bloc.lieu !== '' && bloc.lieu.includes('http') === false"><i class="material-icons">place</i><a :href="'https://www.openstreetmap.org/search?query=' + bloc.lieu" target="_blank">{{ bloc.lieu }}</a></span>
 									<span class="lieu" v-else-if="bloc.lieu !== '' && bloc.lieu.includes('http') === true"><i class="material-icons">voice_chat</i><a :href="bloc.lieu" target="_blank">{{ definirDomaine(bloc.lieu) }}</a></span>
+									<span class="image" v-if="bloc.fichier !== '' && verifierImage(bloc.fichier) === true"><img :src="definirRacine() + 'fichiers/' + id + '/vignette_' + bloc.fichier" @error="remplacerImage($event, bloc.fichier)"></span>
 									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== '' || (bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui' && bloc.hasOwnProperty('travaux') === true && bloc.travaux.length > 0) || (bloc.hasOwnProperty('listeCriteres') === true && bloc.listeCriteres.length > 0)">
 										<a class="bouton icone" :href="bloc.lien" target="_blank" :title="$t('ouvrirLien')" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-if="bloc.lien !== ''"><i class="material-icons">open_in_new</i></a>
 										<a class="bouton icone" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" :title="$t('telechargerFichier')" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-else-if="bloc.fichier !== ''"><i class="material-icons">get_app</i></a>
@@ -118,6 +119,7 @@
 									</div>
 									<span class="lieu" v-if="bloc.lieu !== '' && bloc.lieu.includes('http') === false"><i class="material-icons">place</i><a :href="'https://www.openstreetmap.org/search?query=' + bloc.lieu" target="_blank">{{ bloc.lieu }}</a></span>
 									<span class="lieu" v-else-if="bloc.lieu !== '' && bloc.lieu.includes('http') === true"><i class="material-icons">voice_chat</i><a :href="bloc.lieu" target="_blank">{{ definirDomaine(bloc.lieu) }}</a></span>
+									<span class="image" v-if="bloc.fichier !== '' && verifierImage(bloc.fichier) === true"><img :src="definirRacine() + 'fichiers/' + id + '/vignette_' + bloc.fichier" @error="remplacerImage($event, bloc.fichier)"></span>
 									<div class="action" v-if="bloc.lien !== '' || bloc.fichier !== '' || (bloc.hasOwnProperty('depot') === true && bloc.depot === 'oui') || (bloc.hasOwnProperty('listeCriteres') === true && bloc.listeCriteres.length > 0)">
 										<a class="bouton icone" :href="bloc.lien" target="_blank" :title="$t('ouvrirLien')" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-if="bloc.lien !== ''"><i class="material-icons">open_in_new</i></a>
 										<a class="bouton icone" :href="definirRacine() + 'fichiers/' + id + '/' + bloc.fichier" target="_blank" :title="$t('telechargerFichier')" :style="{'border-color': bloc.couleur, 'color': modifierCouleur(bloc.couleur, -20)}" v-else-if="bloc.fichier !== ''"><i class="material-icons">get_app</i></a>
@@ -777,6 +779,12 @@ export default {
 	},
 	created () {
 		this.id = this.$route.params.id
+		const langue = this.$route.query.lang
+		if (this.$parent.$parent.langues.includes(langue) === true) {
+			this.$root.$i18n.locale = langue
+			this.$parent.$parent.langue = langue
+			document.getElementsByTagName('html')[0].setAttribute('lang', langue)
+		}
 		this.$parent.$parent.chargement = false
 		const xhr = new XMLHttpRequest()
 		xhr.onload = function () {
@@ -814,6 +822,12 @@ export default {
 		xhr.send('id=' + this.id)
 	},
 	mounted () {
+		const langue = navigator.language.substring(0, 2)
+		if (this.$parent.$parent.langues.includes(this.$route.query.lang) === false && this.$parent.$parent.langues.includes(langue) === true) {
+			this.$root.$i18n.locale = langue
+			this.$parent.$parent.langue = langue
+			document.getElementsByTagName('html')[0].setAttribute('lang', langue)
+		}
 		const lien = this.definirRacine() + '#/s/' + this.id
 		const clipboardLien = new ClipboardJS('#copier-lien .lien', {
 			text: function () {
@@ -1029,7 +1043,7 @@ export default {
 					{ name: 'barre', title: that.$t('barre'), icon: '<i class="material-icons">format_strikethrough</i>', result: () => pell.exec('strikethrough') },
 					{ name: 'listeordonnee', title: that.$t('listeOrdonnee'), icon: '<i class="material-icons">format_list_numbered</i>', result: () => pell.exec('insertOrderedList') },
 					{ name: 'liste', title: that.$t('liste'), icon: '<i class="material-icons">format_list_bulleted</i>', result: () => pell.exec('insertUnorderedList') },
-					{ name: 'couleur', title: that.$t('couleurTexte'), icon: '<label for="couleur-texte"><i class="material-icons">format_color_text</i></label><input id="couleur-texte" type="color" style="display: none;">', result: () => undefined },
+					{ name: 'couleur', title: that.$t('couleurTexte'), icon: '<label for="couleur-texte"><i class="material-icons">format_color_text</i></label><input id="couleur-texte" type="color">', result: () => undefined },
 					{ name: 'lien', title: that.$t('lien'), icon: '<i class="material-icons">link</i>', result: () => { const url = window.prompt(that.$t('adresseLien')); if (url) { pell.exec('createLink', url) } } }
 				],
 				classes: { actionbar: 'boutons-editeur', button: 'bouton-editeur', content: 'contenu-editeur', selected: 'bouton-actif' }
@@ -1137,11 +1151,9 @@ export default {
 		},
 		modifierCouleurTexte (event) {
 			pell.exec('foreColor', event.target.value)
-			document.querySelector('#texte .bouton-editeur label[for="couleur-texte"]').style.color = event.target.value
 		},
 		modifierCouleurRetroaction (event) {
 			pell.exec('foreColor', event.target.value)
-			document.querySelector('#retroaction .bouton-editeur label[for="couleur-retroaction"]').style.color = event.target.value
 		},
 		selectionnerFichier (event) {
 			this.fichier = event.target.files[0].name
@@ -1245,6 +1257,9 @@ export default {
 					resolve('erreur')
 				}
 			}.bind(this))
+		},
+		remplacerImage (event, fichier) {
+			event.target.src = this.definirRacine() + 'fichiers/' + this.id + '/' + fichier
 		},
 		async ajouterBloc () {
 			if (this.verifierBloc() === false) {
@@ -1534,7 +1549,7 @@ export default {
 							{ name: 'barre', title: that.$t('barre'), icon: '<i class="material-icons">format_strikethrough</i>', result: () => pell.exec('strikethrough') },
 							{ name: 'listeordonnee', title: that.$t('listeOrdonnee'), icon: '<i class="material-icons">format_list_numbered</i>', result: () => pell.exec('insertOrderedList') },
 							{ name: 'liste', title: that.$t('liste'), icon: '<i class="material-icons">format_list_bulleted</i>', result: () => pell.exec('insertUnorderedList') },
-							{ name: 'couleur', title: that.$t('couleurTexte'), icon: '<label for="couleur-retroaction"><i class="material-icons">format_color_text</i></label><input id="couleur-retroaction" type="color" style="display: none;">', result: () => undefined },
+							{ name: 'couleur', title: that.$t('couleurTexte'), icon: '<label for="couleur-retroaction"><i class="material-icons">format_color_text</i></label><input id="couleur-retroaction" type="color">', result: () => undefined },
 							{ name: 'lien', title: that.$t('lien'), icon: '<i class="material-icons">link</i>', result: () => { const url = window.prompt(that.$t('adresseLien')); if (url) { pell.exec('createLink', url) } } }
 						],
 						classes: { actionbar: 'boutons-editeur', button: 'bouton-editeur', content: 'contenu-editeur', selected: 'bouton-actif' }
@@ -2110,6 +2125,15 @@ export default {
 				return false
 			}
 			return url.protocol === 'http:' || url.protocol === 'https:'
+		},
+		verifierImage (fichier) {
+			const extensions = ['jpg', 'jpeg', 'png', 'gif']
+			const extension = fichier.split('.').pop()
+			if (extension !== fichier && extensions.includes(extension) === true) {
+				return true
+			} else {
+				return false
+			}
 		}
 	}
 }
@@ -2211,6 +2235,10 @@ export default {
 article,
 section {
 	position: relative;
+}
+
+#actions {
+	font-size: 0;
 }
 
 #blocs.vide {
@@ -2404,6 +2432,20 @@ section {
 	margin-top: 15px;
 }
 
+#blocs .bloc .contenu .image + .action,
+#blocs .bloc .contenu .image {
+	margin-top: 12px;
+}
+
+#blocs .bloc .contenu .image {
+	display: block;
+}
+
+#blocs .bloc .contenu .image img {
+	max-height: 250px;
+	border-radius: 7px;
+}
+
 #blocs .bloc.verrouille .titre {
 	margin-bottom: 15px;
 }
@@ -2518,6 +2560,10 @@ section {
 	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
 	margin-right: 0.5em;
 	cursor: pointer;
+}
+
+#blocs .bloc:hover .actions span:hover {
+  opacity: 0.85;
 }
 
 #blocs .bloc:hover .actions span:last-child {
@@ -3144,6 +3190,10 @@ section {
 	#bloc {
 		height: 100%!important;
 		width: 100%!important;
+		border-radius: 0!important;
+	}
+
+	#valider {
 		border-radius: 0!important;
 	}
 }
