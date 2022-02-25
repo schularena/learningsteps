@@ -32,6 +32,7 @@ export default {
 			chargementParcours: true,
 			message: '',
 			notification: '',
+			langues: ['fr', 'en'],
 			langue: 'fr'
 		}
 	},
@@ -53,15 +54,6 @@ export default {
 	},
 	created () {
 		this.hote = window.location.href.split('#')[0]
-	},
-	mounted () {
-		const langue = navigator.language
-		const langues = ['fr', 'en']
-		if (langues.includes(langue.substring(0, 2)) === true) {
-			this.$root.$i18n.locale = langue.substring(0, 2)
-			this.langue = langue.substring(0, 2)
-			document.getElementsByTagName('html')[0].setAttribute('lang', this.langue)
-		}
 	}
 }
 </script>
