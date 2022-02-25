@@ -36,6 +36,9 @@ if (!empty($_POST['parcours']) && !empty($_POST['donnees'])) {
 						if (file_exists('../fichiers/' . $parcours . '/' . $fichier)) {
 							unlink('../fichiers/' . $parcours . '/' . $fichier);
 						}
+						if (file_exists('../fichiers/' . $parcours . '/vignette_' . $fichier)) {
+							unlink('../fichiers/' . $parcours . '/vignette_' . $fichier);
+						}
 					}
 				}
 				echo 'parcours_modifie';
