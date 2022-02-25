@@ -67,8 +67,20 @@ export default {
 	},
 	created () {
 		this.$parent.$parent.chargementParcours = false
+		const langue = this.$route.query.lang
+		if (this.$parent.$parent.langues.includes(langue) === true) {
+			this.$root.$i18n.locale = langue
+			this.$parent.$parent.langue = langue
+			document.getElementsByTagName('html')[0].setAttribute('lang', langue)
+		}
 	},
 	mounted () {
+		const langue = navigator.language.substring(0, 2)
+		if (this.$parent.$parent.langues.includes(this.$route.query.lang) === false && this.$parent.$parent.langues.includes(langue) === true) {
+			this.$root.$i18n.locale = langue
+			this.$parent.$parent.langue = langue
+			document.getElementsByTagName('html')[0].setAttribute('lang', langue)
+		}
 		setTimeout(function () {
 			this.$parent.$parent.chargement = false
 		}.bind(this), 300)
