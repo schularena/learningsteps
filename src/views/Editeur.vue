@@ -801,7 +801,6 @@ export default {
 				this.nom = reponse.nom
 				if (reponse.donnees !== '') {
 					const donnees = JSON.parse(reponse.donnees)
-					donnees.bloc
 					this.blocs = donnees.blocs
 				}
 				setTimeout(function () {
