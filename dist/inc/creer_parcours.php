@@ -8,14 +8,7 @@ header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 session_start();
 
 if (!empty($_POST['nom']) && !empty($_POST['question']) && !empty($_POST['reponse'])) {
-	try {
-		$db = new PDO('sqlite:'. dirname(__FILE__) . '/digisteps.db');
-		$db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-		$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-	} catch(Exception $e) {
-		echo 'Erreur lors de la connexion à la base de données : ' . $e->getMessage();
-		die();
-	}
+	require 'db.php';
 	$parcours = uniqid('', false);
 	$nom = $_POST['nom'];
 	$question = $_POST['question'];
