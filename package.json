@@ -26,10 +26,10 @@
     "linkifyjs": "^3.0.4",
     "moment": "^2.29.1",
     "pell": "^1.0.6",
-    "vue": "^3.2.26",
+    "vue": "^3.2.31",
     "vue-draggable-next": "^2.1.1",
     "vue-i18n": "^9.1.9",
-    "vue-router": "^4.0.10"
+    "vue-router": "^4.0.12"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.5.15",
