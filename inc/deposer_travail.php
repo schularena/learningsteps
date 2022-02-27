@@ -8,14 +8,7 @@ header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 $_POST = json_decode(file_get_contents('php://input'), true);
 
 if (!empty($_POST['parcours']) && !empty($_POST['id']) && !empty($_POST['motdepasse'])) {
-	try {
-		$db = new PDO('sqlite:'. dirname(__FILE__) . '/digisteps.db');
-		$db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-		$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-	} catch(Exception $e) {
-		echo 'Erreur lors de la connexion à la base de données : ' . $e->getMessage();
-		die();
-	}
+	require 'db.php';
 	$parcours = $_POST['parcours'];
 	$stmt = $db->prepare('SELECT donnees FROM digisteps_parcours WHERE url = :url');
 	if ($stmt->execute(array('url' => $parcours))) {

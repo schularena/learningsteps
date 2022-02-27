@@ -19,7 +19,7 @@ module.exports = {
 				from: path.resolve(__dirname, 'inc'),
 				to: path.resolve(__dirname, 'dist/inc'),
 				toType: 'dir',
-				ignore: ['.gitignore']
+				ignore: ['*.db']
 			},
 			{
 				from: path.resolve(__dirname, 'fichiers'),
