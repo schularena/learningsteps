@@ -13,11 +13,11 @@ if (!empty($_FILES['blob']) && !empty($_POST['parcours'])) {
 	if (!file_exists('../fichiers/' . $parcours)) {
 		mkdir('../fichiers/' . $parcours, 0775, true);
 	}
-	$nom = hash('md5', $_FILES['blob']['tmp_name']) . time();
-	$chemin = '../fichiers/' . $parcours . '/' . $nom . '.' . $extension;
+	$nom = hash('md5', $_FILES['blob']['tmp_name']) . time() . '.' . $extension;
+	$chemin = '../fichiers/' . $parcours . '/' . $nom;
 	if (move_uploaded_file($_FILES['blob']['tmp_name'], $chemin)) {
 		if (in_array($extension, array('jpg', 'jpeg', 'png', 'gif'))) {
-			$cheminvignette = '../fichiers/' . $parcours . '/vignette_' . $nom . '.' . $extension;
+			$cheminvignette = '../fichiers/' . $parcours . '/vignette_' . $nom;
 			creer_vignette($chemin, $cheminvignette, 250);
 		}
 		if ($ancienfichier !== '' && $fichier !== $ancienfichier) {
