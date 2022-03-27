@@ -52,6 +52,7 @@
 									<span @click="modifierVisibiliteBloc(bloc.id)" :title="$t('masquer')" v-if="bloc.visibilite === true"><i class="material-icons">visibility</i></span>
 									<span @click="modifierVisibiliteBloc(bloc.id)" :title="$t('afficher')" v-else><i class="material-icons">visibility_off</i></span>
 									<span @click="ouvrirModaleBloc('edition', bloc)" :title="$t('editer')"><i class="material-icons">edit</i></span>
+									<span @click="dupliquerBloc(bloc.id)" :title="$t('dupliquer')"><i class="material-icons">content_copy</i></span>
 									<span @click="afficherSupprimerBloc(bloc.id)" :title="$t('supprimer')"><i class="material-icons">delete</i></span>
 								</div>
 							</article>
@@ -83,6 +84,7 @@
 									<span @click="modifierVisibiliteBloc(bloc.id)" :title="$t('masquer')" v-if="bloc.visibilite === true"><i class="material-icons">visibility</i></span>
 									<span @click="modifierVisibiliteBloc(bloc.id)" :title="$t('afficher')" v-else><i class="material-icons">visibility_off</i></span>
 									<span @click="ouvrirModaleBloc('edition', bloc)" :title="$t('editer')"><i class="material-icons">edit</i></span>
+									<span @click="dupliquerBloc(bloc.id)" :title="$t('dupliquer')"><i class="material-icons">content_copy</i></span>
 									<span @click="afficherSupprimerBloc(bloc.id)" :title="$t('supprimer')"><i class="material-icons">delete</i></span>
 								</div>
 							</article>
@@ -566,6 +568,11 @@
 				</header>
 				<div class="conteneur">
 					<div class="contenu">
+						<div class="langue">
+							<span :class="{'selectionne': $parent.$parent.langue === 'fr'}" @click="modifierLangue('fr')">FR</span>
+							<span :class="{'selectionne': $parent.$parent.langue === 'it'}" @click="modifierLangue('it')">IT</span>
+							<span :class="{'selectionne': $parent.$parent.langue === 'en'}" @click="modifierLangue('en')">EN</span>
+						</div>
 						<label>{{ $t('questionSecrete') }}</label>
 						<select :value="question" @change="question = $event.target.value">
 							<option v-for="(item, index) in questions" :value="item" :key="'option_' + index">{{ $t(item) }}</option>
@@ -590,6 +597,7 @@
 					<div class="contenu">
 						<div class="langue">
 							<span :class="{'selectionne': $parent.$parent.langue === 'fr'}" @click="modifierLangue('fr')">FR</span>
+							<span :class="{'selectionne': $parent.$parent.langue === 'it'}" @click="modifierLangue('it')">IT</span>
 							<span :class="{'selectionne': $parent.$parent.langue === 'en'}" @click="modifierLangue('en')">EN</span>
 						</div>
 						<span class="bouton large" role="button" tabindex="0" @click="ouvrirModaleNomParcours">{{ $t('modifierNomParcours') }}</span>
@@ -801,6 +809,11 @@ export default {
 				this.nom = reponse.nom
 				if (reponse.donnees !== '') {
 					const donnees = JSON.parse(reponse.donnees)
+					donnees.blocs.forEach(function (bloc, index) {
+						if (!bloc || !bloc.hasOwnProperty('id')) {
+							donnees.blocs.splice(index, 1)
+						}
+					})
 					this.blocs = donnees.blocs
 				}
 				setTimeout(function () {
@@ -1446,6 +1459,76 @@ export default {
 			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }) }
 			xhr.send(JSON.stringify(json))
 		},
+		dupliquerFichier (fichier) {
+			return new Promise(function (resolve) {
+				const xhr = new XMLHttpRequest()
+				xhr.onload = function () {
+					if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+						if (xhr.responseText === 'erreur') {
+							resolve('erreur')
+						} else {
+							resolve(xhr.responseText)
+						}
+					} else {
+						resolve('erreur')
+					}
+				}
+				xhr.open('POST', this.$parent.$parent.hote + 'inc/dupliquer_fichier.php', true)
+				xhr.setRequestHeader('Content-type', 'application/json')
+				const json = { parcours: this.id, fichier: fichier }
+				xhr.send(JSON.stringify(json))
+			}.bind(this))
+		},
+		async dupliquerBloc (id) {
+			this.$parent.$parent.chargement = true
+			const blocs = JSON.parse(JSON.stringify(this.blocs))
+			let bloc = {}
+			blocs.forEach(function (item) {
+				if (item.id === id) {
+					bloc = item
+				}
+			})
+			bloc.id = 'etape-' + (new Date()).getTime() + Math.random().toString(16).slice(10)
+			if (bloc.hasOwnProperty('fichier') === true && bloc.fichier !== '') {
+				const fichier = await this.dupliquerFichier(bloc.fichier)
+				if (fichier === 'erreur') {
+					this.$parent.$parent.chargement = false
+					return false
+				} else {
+					bloc.fichier = fichier
+				}
+			}
+			if (bloc.hasOwnProperty('travaux') === true) {
+				bloc.travaux = []
+			}
+			blocs.push(bloc)
+			const xhr = new XMLHttpRequest()
+			xhr.onload = function () {
+				if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+					this.$parent.$parent.chargement = false
+					this.fermerModaleContenu()
+					if (xhr.responseText === 'erreur') {
+						this.$parent.$parent.message = this.$t('erreurServeur')
+					} else if (xhr.responseText === 'non_autorise') {
+						this.$parent.$parent.message = this.$t('actionNonAutorisee')
+					} else if (xhr.responseText === 'parcours_modifie') {
+						this.blocs.push(bloc)
+						this.$parent.$parent.notification = this.$t('etapeDupliquee')
+						this.$nextTick(function () {
+							this.verifierTextes()
+						})
+					}
+				} else {
+					this.$parent.$parent.chargement = false
+					this.fermerModaleContenu()
+					this.$parent.$parent.message = this.$t('erreurServeur')
+				}
+			}.bind(this)
+			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
+			xhr.setRequestHeader('Content-type', 'application/json')
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }) }
+			xhr.send(JSON.stringify(json))
+		},
 		afficherSupprimerBloc (id) {
 			this.blocId = id
 			this.modale = 'supprimer-bloc'
@@ -1891,10 +1974,6 @@ export default {
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/supprimer_travail.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			console.log(this.id)
-			console.log(this.blocId)
-			console.log(this.motdepasse)
-			console.log(fichierasupprimer)
 			const json = { parcours: this.id, id: this.blocId, motdepasse: this.motdepasse, fichierasupprimer: fichierasupprimer }
 			xhr.send(JSON.stringify(json))
 		},
