@@ -32,7 +32,7 @@ export default {
 			chargementParcours: true,
 			message: '',
 			notification: '',
-			langues: ['fr', 'en'],
+			langues: ['fr', 'it', 'en'],
 			langue: 'fr'
 		}
 	},
