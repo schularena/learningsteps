@@ -191,5 +191,11 @@ export default {
 	confirmationSupprimerTravail: 'Do you really want to remove this worksheet?',
 	supprimerTravail: 'Delete worksheet',
 	travailSupprime: 'Worksheet deleted.',
-	fermerEvaluation: 'Close the assessment'
+	fermerEvaluation: 'Close the assessment',
+	exporterParcours: 'Export learning path',
+	importerParcours: 'Import a learning path',
+	parcoursImporte: 'Learning path imported.',
+	parcoursExporte: 'Learning path exported.',
+	selectionnerFichierImport: 'Select a .zip file',
+	alerteImporter: 'Please note that all the content of the current learning path will be replaced by the imported content.'
 }

@@ -602,8 +602,26 @@
 						</div>
 						<span class="bouton large" role="button" tabindex="0" @click="ouvrirModaleNomParcours">{{ $t('modifierNomParcours') }}</span>
 						<span class="bouton large" role="button" tabindex="0" @click="ouvrirModaleAccesParcours">{{ $t('modifierAccesParcours') }}</span>
+						<span class="bouton large" role="button" tabindex="0" @click="exporterParcours">{{ $t('exporterParcours') }}</span>
+						<span class="bouton large" role="button" tabindex="0" @click="modale = 'importer'">{{ $t('importerParcours') }}</span>
 						<span class="bouton large rouge" role="button" tabindex="0" @click="afficherSupprimerParcours">{{ $t('supprimerParcours') }}</span>
 						<span class="bouton large" role="button" tabindex="0" @click="terminerSession">{{ $t('terminerSession') }}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="conteneur-modale" v-else-if="modale === 'importer'">
+			<div class="modale">
+				<header>
+					<span class="titre">{{ $t('importerParcours') }}</span>
+					<span class="fermer" role="button" tabindex="0" @click="modale = ''"><i class="material-icons">close</i></span>
+				</header>
+				<div class="conteneur">
+					<div class="contenu">
+						<p>{{ $t('alerteImporter') }}</p>
+						<input type="file" id="importer" name="importer" style="display: none;" accept=".zip" @change="importerParcours">
+						<label for="importer" class="bouton large">{{ $t('selectionnerFichierImport') }}</label>
 					</div>
 				</div>
 			</div>
@@ -719,6 +737,9 @@ import pell from 'pell'
 import linkifyHtml from 'linkify-html'
 import moment from 'moment'
 import imagesLoaded from 'imagesloaded'
+import { saveAs } from 'file-saver'
+import latinise from 'voca/latinise'
+import JSZip from 'jszip'
 import { VueDraggableNext } from 'vue-draggable-next'
 
 export default {
@@ -2125,6 +2146,131 @@ export default {
 				this.$parent.$parent.message = this.$t('selectionnerQuestionSecrete')
 			} else if (this.reponse === '') {
 				this.$parent.$parent.message = this.$t('remplirReponseSecrete')
+			}
+		},
+		exporterParcours () {
+			this.modale = ''
+			this.$parent.$parent.chargement = true
+			const donnees = { blocs: this.blocs }
+			let nom = latinise(this.nom.toLowerCase())
+			nom = nom.replace(/ /gi, '-')
+			nom = nom.replace(/[^0-9a-z_-]/gi, '')
+			if (nom.length > 100) {
+				nom = nom.substring(0, 100)
+			}
+			const zip = new JSZip()
+			const fichiers = []
+			this.blocs.forEach(function (bloc) {
+				if (bloc.hasOwnProperty('travaux')) {
+					bloc.travaux = []
+				}
+				if (bloc.hasOwnProperty('fichier') && bloc.fichier !== '') {
+					fichiers.push(bloc.fichier)
+				}
+			})
+			const donneesFichiers = []
+			for (const fichier of fichiers) {
+				const donneesFichier = new Promise(function (resolve) {
+					const xhr = new XMLHttpRequest()
+					xhr.onload = function () {
+						if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+							resolve({ nom: fichier, binaire: this.response })
+						} else {
+							resolve({ nom: '', binaire: '' })
+						}
+					}
+					xhr.onerror = function () {
+						resolve({ nom: '', binaire: '' })
+					}
+					xhr.open('GET', this.definirRacine() + 'fichiers/' + this.id + '/' + fichier, true)
+					xhr.responseType = 'arraybuffer'
+					xhr.send()
+				}.bind(this))
+				donneesFichiers.push(donneesFichier)
+			}
+			Promise.all(donneesFichiers).then(function (resultat) {
+				resultat.forEach(function (item) {
+					if (item.nom !== '' && item.binaire !== '') {
+						zip.folder('fichiers').file(item.nom, item.binaire, { binary: true })
+					}
+				})
+				zip.file('donnees.json', JSON.stringify(donnees))
+				zip.generateAsync({ type: 'blob' }).then(function (archive) {
+					this.$parent.$parent.chargement = false
+					saveAs(archive, nom + '_' + new Date().getTime() + '.zip')
+					this.$parent.$parent.notification = this.$t('parcoursExporte')
+				}.bind(this))
+			}.bind(this))
+		},
+		importerParcours (event) {
+			const fichier = event.target.files[0]
+			if (fichier === null || fichier.length === 0) {
+				document.querySelector('#importer').value = ''
+				return false
+			} else {
+				this.modale = ''
+				this.$parent.$parent.chargement = true
+				const donneesFichiers = []
+				const jszip = new JSZip()
+				jszip.loadAsync(fichier).then(function (archive) {
+					if (archive.files['donnees.json'] && archive.files['donnees.json'] !== '') {
+						archive.files['donnees.json'].async('string').then(function (donnees) {
+							donnees = JSON.parse(donnees)
+							let indexFichier = 0
+							for (const item of donnees.blocs) {
+								if (item.hasOwnProperty('fichier') && item.fichier !== '') {
+									const donneesFichier = new Promise(function (resolve) {
+										archive.files['fichiers/' + item.fichier].async('blob').then(function (blob) {
+											indexFichier++
+											const formData = new FormData()
+											formData.append('index', indexFichier)
+											formData.append('fichier', item.fichier)
+											formData.append('parcours', this.id)
+											formData.append('blob', blob)
+											const xhr = new XMLHttpRequest()
+											xhr.onload = function () {
+												if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+													resolve('fichier_televerse')
+												} else {
+													resolve('erreur_televersement')
+												}
+											}.bind(this)
+											xhr.open('POST', this.$parent.$parent.hote + 'inc/televerser_fichier_import.php', true)
+											xhr.send(formData)
+										}.bind(this))
+									}.bind(this))
+									donneesFichiers.push(donneesFichier)
+								}
+							}
+							Promise.all(donneesFichiers).then(function () {
+								const xhr = new XMLHttpRequest()
+								xhr.onload = function () {
+									if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+										this.$parent.$parent.chargement = false
+										if (xhr.responseText === 'erreur') {
+											this.$parent.$parent.message = this.$t('erreurServeur')
+										} else if (xhr.responseText === 'non_autorise') {
+											this.$parent.$parent.message = this.$t('actionNonAutorisee')
+										} else if (xhr.responseText === 'parcours_modifie') {
+											this.blocs = donnees.blocs
+											this.$parent.$parent.notification = this.$t('parcoursImporte')
+											this.$nextTick(function () {
+												this.verifierTextes()
+											})
+										}
+									} else {
+										this.$parent.$parent.chargement = false
+										this.$parent.$parent.message = this.$t('erreurServeur')
+									}
+								}.bind(this)
+								xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
+								xhr.setRequestHeader('Content-type', 'application/json')
+								const json = { parcours: this.id, donnees: JSON.stringify({ blocs: donnees.blocs }) }
+								xhr.send(JSON.stringify(json))
+							}.bind(this))
+						}.bind(this))
+					}
+				}.bind(this))
 			}
 		},
 		terminerSession () {

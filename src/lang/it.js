@@ -90,7 +90,7 @@ export default {
 	description: 'Descrizione',
 	consigne: 'Consegna',
 	ajouterTitre: 'Aggiungi un titolo',
-	typeEtape: 'Titolo della tappa',
+	typeEtape: 'Tipo di tappa',
 	section: 'Sezione',
 	seancePresenceDistance: 'Sessione (in presenza o a distanza)',
 	documentFichierLien: 'Documento (File o link)',
@@ -191,5 +191,11 @@ export default {
 	confirmationSupprimerTravail: 'Vuoi eliminare questo lavoro?',
 	supprimerTravail: 'Elimina il lavoro',
 	travailSupprime: 'Lavoro eliminato.',
-	fermerEvaluation: 'Chiudi la valutazione'
+	fermerEvaluation: 'Chiudi la valutazione',
+	exporterParcours: 'Esportare il percorso',
+	importerParcours: 'Importare un percorso',
+	parcoursImporte: 'Percorso importato.',
+	parcoursExporte: 'Percorso esportato.',
+	selectionnerFichierImport: 'Selezionare un file .zip',
+	alerteImporter: 'Si noti che tutti i contenuti del percorso corrente saranno sostituiti da quelli importati.'
 }

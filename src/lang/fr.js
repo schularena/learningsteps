@@ -191,5 +191,11 @@ export default {
 	confirmationSupprimerTravail: 'Souhaitez-vous vraiment supprimer ce travail&nbsp;?',
 	supprimerTravail: 'Supprimer ce travail',
 	travailSupprime: 'Travail supprimé.',
-	fermerEvaluation: 'Fermer l\'évaluation'
+	fermerEvaluation: 'Fermer l\'évaluation',
+	exporterParcours: 'Exporter le parcours',
+	importerParcours: 'Importer un parcours',
+	parcoursImporte: 'Parcours importé.',
+	parcoursExporte: 'Parcours exporté.',
+	selectionnerFichierImport: 'Sélectionner un fichier .zip',
+	alerteImporter: 'Attention, tout le contenu du parcours actuel sera remplacé par le contenu importé.'
 }
