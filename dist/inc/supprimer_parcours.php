@@ -9,13 +9,27 @@ session_start();
 
 if (!empty($_POST['parcours'])) {
 	require 'db.php';
+	$reponse = '';
 	$parcours = $_POST['parcours'];
-	$stmt = $db->prepare('DELETE FROM digisteps_parcours WHERE url = :url');
+	if (isset($_SESSION['digisteps'][$parcours]['reponse'])) {
+		$reponse = $_SESSION['digisteps'][$parcours]['reponse'];
+	}
+	$stmt = $db->prepare('SELECT reponse FROM digisteps_parcours WHERE url = :url');
 	if ($stmt->execute(array('url' => $parcours))) {
-		if (file_exists('../fichiers/' . $parcours)) {
-			supprimer('../fichiers/' . $parcours);
+		$resultat = $stmt->fetchAll();
+		if ($resultat[0]['reponse'] === $reponse) {
+			$stmt = $db->prepare('DELETE FROM digisteps_parcours WHERE url = :url');
+			if ($stmt->execute(array('url' => $parcours))) {
+				if (file_exists('../fichiers/' . $parcours)) {
+					supprimer('../fichiers/' . $parcours);
+				}
+				echo 'parcours_supprime';
+			} else {
+				echo 'erreur';
+			}
+		} else {
+			echo 'non_autorise';
 		}
-		echo 'parcours_supprime';
 	} else {
 		echo 'erreur';
 	}
