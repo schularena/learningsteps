@@ -11,7 +11,7 @@
 					<div class="contenu">
 						<div class="message" v-html="message" />
 						<div class="actions">
-							<span class="bouton" role="button" tabindex="0" @click="message = ''">Fermer</span>
+							<span class="bouton" role="button" tabindex="0" @click="message = ''">{{ $t('fermer') }}</span>
 						</div>
 					</div>
 				</div>

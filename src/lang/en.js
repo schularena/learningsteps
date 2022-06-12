@@ -197,5 +197,6 @@ export default {
 	parcoursImporte: 'Learning path imported.',
 	parcoursExporte: 'Learning path exported.',
 	selectionnerFichierImport: 'Select a .zip file',
-	alerteImporter: 'Please note that all the content of the current learning path will be replaced by the imported content.'
+	alerteImporter: 'Please note that all the content of the current learning path will be replaced by the imported content.',
+	fermer: 'Close'
 }

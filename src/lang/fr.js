@@ -197,5 +197,6 @@ export default {
 	parcoursImporte: 'Parcours importé.',
 	parcoursExporte: 'Parcours exporté.',
 	selectionnerFichierImport: 'Sélectionner un fichier .zip',
-	alerteImporter: 'Attention, tout le contenu du parcours actuel sera remplacé par le contenu importé.'
+	alerteImporter: 'Attention, tout le contenu du parcours actuel sera remplacé par le contenu importé.',
+	fermer: 'Fermer'
 }

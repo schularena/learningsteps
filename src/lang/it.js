@@ -197,5 +197,6 @@ export default {
 	parcoursImporte: 'Percorso importato.',
 	parcoursExporte: 'Percorso esportato.',
 	selectionnerFichierImport: 'Selezionare un file .zip',
-	alerteImporter: 'Si noti che tutti i contenuti del percorso corrente saranno sostituiti da quelli importati.'
+	alerteImporter: 'Si noti che tutti i contenuti del percorso corrente saranno sostituiti da quelli importati.',
+	fermer: 'Chiudere'
 }

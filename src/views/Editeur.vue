@@ -588,7 +588,7 @@
 		</div>
 
 		<div class="conteneur-modale" v-else-if="modale === 'parcours'">
-			<div class="modale">
+			<div id="modale-parametres" class="modale">
 				<header>
 					<span class="titre">{{ $t('parametresParcours') }}</span>
 					<span class="fermer" role="button" tabindex="0" @click="fermerModaleParcours"><i class="material-icons">close</i></span>
@@ -2217,29 +2217,53 @@ export default {
 						archive.files['donnees.json'].async('string').then(function (donnees) {
 							donnees = JSON.parse(donnees)
 							let indexFichier = 0
-							for (const item of donnees.blocs) {
+							let nombreFichiers = 0
+							donnees.blocs.forEach(function (item) {
 								if (item.hasOwnProperty('fichier') && item.fichier !== '') {
-									const donneesFichier = new Promise(function (resolve) {
-										archive.files['fichiers/' + item.fichier].async('blob').then(function (blob) {
-											indexFichier++
-											const formData = new FormData()
-											formData.append('index', indexFichier)
-											formData.append('fichier', item.fichier)
-											formData.append('parcours', this.id)
-											formData.append('blob', blob)
-											const xhr = new XMLHttpRequest()
-											xhr.onload = function () {
-												if (xhr.readyState === xhr.DONE && xhr.status === 200) {
-													resolve('fichier_televerse')
-												} else {
+									nombreFichiers++
+								}
+							})
+							if (nombreFichiers === 0) {
+								new Promise(function (resolve) {
+									const xhr = new XMLHttpRequest()
+									xhr.onload = function () {
+										resolve('dossier_vide')
+									}.bind(this)
+									xhr.onerror = function () {
+										resolve('erreur_televersement')
+									}
+									xhr.open('POST', this.$parent.$parent.hote + 'inc/vider_dossier_parcours.php', true)
+									xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+									xhr.send('parcours=' + this.id)
+								}.bind(this))
+							} else {
+								for (const item of donnees.blocs) {
+									if (item.hasOwnProperty('fichier') && item.fichier !== '') {
+										const donneesFichier = new Promise(function (resolve) {
+											archive.files['fichiers/' + item.fichier].async('blob').then(function (blob) {
+												indexFichier++
+												const formData = new FormData()
+												formData.append('index', indexFichier)
+												formData.append('fichier', item.fichier)
+												formData.append('parcours', this.id)
+												formData.append('blob', blob)
+												const xhr = new XMLHttpRequest()
+												xhr.onload = function () {
+													if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+														resolve('fichier_televerse')
+													} else {
+														resolve('erreur_televersement')
+													}
+												}.bind(this)
+												xhr.onerror = function () {
 													resolve('erreur_televersement')
 												}
-											}.bind(this)
-											xhr.open('POST', this.$parent.$parent.hote + 'inc/televerser_fichier_import.php', true)
-											xhr.send(formData)
+												xhr.open('POST', this.$parent.$parent.hote + 'inc/televerser_fichier_import.php', true)
+												xhr.send(formData)
+											}.bind(this))
 										}.bind(this))
-									}.bind(this))
-									donneesFichiers.push(donneesFichier)
+										donneesFichiers.push(donneesFichier)
+									}
 								}
 							}
 							Promise.all(donneesFichiers).then(function () {
@@ -2309,6 +2333,8 @@ export default {
 					this.$parent.$parent.chargement = false
 					if (xhr.responseText === 'erreur') {
 						this.$parent.$parent.message = this.$t('erreurServeur')
+					} else if (xhr.responseText === 'non_autorise') {
+						this.$parent.$parent.message = this.$t('actionNonAutorisee')
 					} else if (xhr.responseText === 'parcours_supprime') {
 						document.title = 'Digisteps by La Digitale'
 						this.$router.push('/')
@@ -3349,6 +3375,10 @@ section {
 	text-align: center;
 	padding: 30px 25px;
 	max-width: 500px;
+}
+
+#modale-parametres .contenu {
+	font-size: 0;
 }
 
 #codeqr.modale .contenu {
