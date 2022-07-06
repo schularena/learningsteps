@@ -1,6 +1,6 @@
 {
   "name": "digisteps",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "homepage": "https://ladigitale.dev/digisteps/",
   "repository": {
     "type": "git",
@@ -21,6 +21,7 @@
     "clipboard": "^2.0.6",
     "core-js": "^3.20.2",
     "destyle.css": "^2.0.0",
+    "eol": "^0.9.1",
     "file-saver": "^2.0.5",
     "imagesloaded": "^4.1.4",
     "jszip": "^3.9.1",
@@ -28,6 +29,7 @@
     "linkifyjs": "^3.0.4",
     "moment": "^2.29.1",
     "pell": "^1.0.6",
+    "read-smore": "^2.0.4",
     "voca": "^1.4.0",
     "vue": "^3.2.31",
     "vue-draggable-next": "^2.1.1",
