@@ -41,7 +41,7 @@
 					<div id="actions" v-if="admin">
 						<span id="ajouter" class="bouton" role="button" tabindex="0" @click="ouvrirModaleBloc('creation', '')">{{ $t('ajouterEtape') }}</span>
 					</div>
-					<draggable id="blocs" class="admin" v-model="blocs" :animation="250" :sort="true" :swap-threshold="0.5" :force-fallback="true" :fallback-tolerance="10" filter=".statique, .lire" :preventOnFilter="false" draggable=".bloc" @end="modifierPositionBloc" v-if="blocs.length > 0 && admin">
+					<draggable id="blocs" class="admin" v-model="blocs" :animation="250" :sort="true" :swap-threshold="0.5" :force-fallback="true" :fallback-tolerance="10" filter=".statique, .lire__link-wrap" :preventOnFilter="false" draggable=".bloc" @end="modifierPositionBloc" v-if="blocs.length > 0 && admin">
 						<template v-for="(bloc, indexBloc) in blocs" :key="'bloc_' + indexBloc">
 							<article :id="bloc.id" class="bloc section" :class="{'invisible': bloc.visibilite === false}" v-if="bloc.type === 'section'">
 								<div class="contenu">
@@ -735,6 +735,8 @@
 import ClipboardJS from 'clipboard'
 import pell from 'pell'
 import linkifyHtml from 'linkify-html'
+import eol from 'eol'
+import ReadSmore from 'read-smore'
 import moment from 'moment'
 import imagesLoaded from 'imagesloaded'
 import { saveAs } from 'file-saver'
@@ -947,48 +949,17 @@ export default {
 			}
 		},
 		verifierTextes () {
-			let balises = document.querySelectorAll('.lire')
-			balises.forEach(function (balise) {
-				balise.parentNode.removeChild(balise)
-			})
 			const textes = document.querySelectorAll('.texte')
-			textes.forEach(function (texte) {
-				if (texte.scrollHeight > texte.clientHeight) {
-					const id = texte.parentNode.parentNode.id
-					const divs = document.querySelectorAll('#' + id + ' .texte div')
-					divs.forEach(function (div, index) {
-						if (index > 0) {
-							div.style.display = 'none'
-						}
-					})
-					const span = document.createElement('span')
-					span.classList.add('lire')
-					span.textContent = this.$t('lireSuite')
-					texte.insertAdjacentElement('afterend', span)
-				}
-			}.bind(this))
-			balises = document.querySelectorAll('.lire')
-			balises.forEach(function (balise) {
-				balise.addEventListener('click', function () {
-					const id = balise.parentNode.parentNode.id
-					const divs = document.querySelectorAll('#' + id + ' .texte div')
-					if (document.querySelector('#' + id + ' .texte').style.display === 'block') {
-						document.querySelector('#' + id + ' .texte').style.display = '-webkit-box'
-						balise.textContent = this.$t('lireSuite')
-						divs.forEach(function (div, index) {
-							if (index > 0) {
-								div.style.display = 'none'
-							}
-						})
-					} else {
-						document.querySelector('#' + id + ' .texte').style.display = 'block'
-						balise.textContent = this.$t('reduire')
-						divs.forEach(function (div) {
-							div.style.display = 'block'
-						})
-					}
-				}.bind(this))
-			}.bind(this))
+			const options = {
+				blockClassName: 'lire',
+				moreText: this.$t('lireSuite'),
+				lessText: this.$t('reduire'),
+				wordsCount: 20
+			}
+			// eslint-disable-next-line
+			ReadSmore(textes, options).destroy()
+			// eslint-disable-next-line
+			ReadSmore(textes, options).init()
 		},
 		afficherMenuPartager () {
 			this.menu = 'partager'
@@ -1089,7 +1060,12 @@ export default {
 				event.preventDefault()
 				event.stopPropagation()
 				const texte = event.clipboardData.getData('text/plain')
-				pell.exec('insertText', texte)
+				const lignes = eol.split(texte)
+				let html = ''
+				lignes.forEach(function (ligne) {
+					html += '<div>' + ligne + '</div>'
+				})
+				pell.exec('insertHtml', html)
 			}
 			document.querySelector('#texte .contenu-editeur').addEventListener('focus', function () {
 				document.querySelector('#texte').classList.add('focus')
@@ -2617,14 +2593,9 @@ section {
 
 #blocs .bloc .texte {
 	display: block;
-	display: -webkit-box;
 	font-size: 15px;
 	margin-top: 12px;
 	line-height: 1.5;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-	overflow: hidden;
-	text-overflow: ellipsis;
 }
 
 #blocs .bloc.section .titre {
@@ -3395,7 +3366,7 @@ section {
 </style>
 
 <style>
-#blocs .bloc .lire {
+#blocs .bloc .lire__link-wrap {
 	display: inline-block;
     font-size: 13px;
     padding: 4px 10px;
@@ -3406,12 +3377,12 @@ section {
 	transition: all .1s ease-in;
 }
 
-#blocs .bloc .lire:hover {
+#blocs .bloc .lire__link-wrap:hover {
 	background: #001d1d;
 	color: #fff;
 }
 
-#blocs .bloc.section .lire {
+#blocs .bloc.section .lire__link-wrap {
 	margin-bottom: 0;
 }
 
