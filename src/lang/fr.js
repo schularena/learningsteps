@@ -198,5 +198,12 @@ export default {
 	parcoursExporte: 'Parcours exporté.',
 	selectionnerFichierImport: 'Sélectionner un fichier .zip',
 	alerteImporter: 'Attention, tout le contenu du parcours actuel sera remplacé par le contenu importé.',
-	fermer: 'Fermer'
+	fermer: 'Fermer',
+	modifierEnTeteParcours: 'Modifier l\'en-tête du parcours',
+	ajouterImageEnTete: 'Ajouter une image d\'en-tête',
+	modifierImageEnTete: 'Modifier l\'image d\'en-tête',
+	alerteImageEnTete: 'Taille recommandée pour l\'image : minimum 1024px de largeur et minimum 140 px de hauteur',
+	selectionnerImage: 'Sélectionner une image',
+	imageEnTeteModifiee: 'Image d\'en-tête modifiée.',
+	imageEnTeteSupprimee: 'Image d\'en-tête supprimée.'
 }
