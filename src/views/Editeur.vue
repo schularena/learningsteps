@@ -1,7 +1,25 @@
 <template>
 	<div id="page">
 		<div id="parcours">
-			<header>
+			<header class="avec-fond" :style="{'background-image': 'url(' + definirRacine() + 'fichiers/' + id + '/' + fond + ')'}" v-if="fond !== ''">
+				<div id="masque" />
+				<div id="conteneur-header">
+					<a id="conteneur-logo" :href="definirRacine()" :title="$t('accueil')">
+						<span id="logo"></span>
+					</a>
+					<span id="titre">{{ nom }}</span>
+					<span id="conteneur-partage" @click="afficherMenuPartager">
+						<i class="material-icons">share_alt</i>
+					</span>
+					<span id="conteneur-parametres" @click="ouvrirModaleParcours" v-if="admin">
+						<i class="material-icons">settings</i>
+					</span>
+					<span id="conteneur-parametres" @click="ouvrirModaleConnexion" v-else>
+						<i class="material-icons">lock_open</i>
+					</span>
+				</div>
+			</header>
+			<header v-else>
 				<div id="conteneur-header">
 					<a id="conteneur-logo" :href="definirRacine()" :title="$t('accueil')">
 						<span id="logo"></span>
@@ -19,7 +37,7 @@
 				</div>
 			</header>
 
-			<div id="menu-partager" v-show="menu === 'partager'" :style="{'left': position + 'px'}">
+			<div id="menu-partager" :class="{'avec-fond': fond !== ''}" v-show="menu === 'partager'" :style="{'left': position + 'px'}">
 				<div id="conteneur-partager">
 					<label>{{ $t('lienEtCodeQR') }}</label>
 					<div id="copier-lien" class="copier">
@@ -602,6 +620,7 @@
 						</div>
 						<span class="bouton large" role="button" tabindex="0" @click="ouvrirModaleNomParcours">{{ $t('modifierNomParcours') }}</span>
 						<span class="bouton large" role="button" tabindex="0" @click="ouvrirModaleAccesParcours">{{ $t('modifierAccesParcours') }}</span>
+						<span class="bouton large" role="button" tabindex="0" @click="modale = 'fond'">{{ $t('modifierEnTeteParcours') }}</span>
 						<span class="bouton large" role="button" tabindex="0" @click="exporterParcours">{{ $t('exporterParcours') }}</span>
 						<span class="bouton large" role="button" tabindex="0" @click="modale = 'importer'">{{ $t('importerParcours') }}</span>
 						<span class="bouton large rouge" role="button" tabindex="0" @click="afficherSupprimerParcours">{{ $t('supprimerParcours') }}</span>
@@ -622,6 +641,31 @@
 						<p>{{ $t('alerteImporter') }}</p>
 						<input type="file" id="importer" name="importer" style="display: none;" accept=".zip" @change="importerParcours">
 						<label for="importer" class="bouton large">{{ $t('selectionnerFichierImport') }}</label>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="conteneur-modale" v-else-if="modale === 'fond'">
+			<div id="modale-fond" class="modale">
+				<header>
+					<span class="titre" v-if="fond === ''">{{ $t('ajouterImageEnTete') }}</span>
+					<span class="titre" v-else>{{ $t('modifierImageEnTete') }}</span>
+					<span class="fermer" role="button" tabindex="0" @click="modale = ''"><i class="material-icons">close</i></span>
+				</header>
+				<div class="conteneur">
+					<div class="contenu" v-if="fond === ''">
+						<p>{{ $t('alerteImageEnTete') }}</p>
+						<input type="file" id="televerser-fond" name="televerser-fond" style="display: none;" accept=".jpg, .jpeg, .png" @change="televerserFond">
+						<label for="televerser-fond" class="bouton large">{{ $t('selectionnerImage') }}</label>
+					</div>
+					<div class="contenu" v-else>
+						<img :src="definirRacine() + 'fichiers/' + id + '/' + fond" alt="Fond">
+						<div class="actions">
+							<input type="file" id="televerser-fond" name="televerser-fond" style="display: none;" accept=".jpg, .jpeg, .png" @change="televerserFond">
+							<label for="televerser-fond" class="bouton">{{ $t('modifier') }}</label>
+							<span class="bouton rouge" role="button" tabindex="0" @click="supprimerFond">{{ $t('supprimer') }}</span>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -760,6 +804,7 @@ export default {
 			questions: ['motPrefere', 'filmPrefere', 'chansonPreferee', 'prenomMere', 'prenomPere', 'nomRue', 'nomEmployeur', 'nomAnimal'],
 			reponse: '',
 			nom: '',
+			fond: '',
 			nouveaunom: '',
 			nouvellequestion: '',
 			nouvellereponse: '',
@@ -838,6 +883,9 @@ export default {
 						}
 					})
 					this.blocs = donnees.blocs
+					if (donnees.hasOwnProperty('fond') === true) {
+						this.fond = donnees.fond
+					}
 				}
 				setTimeout(function () {
 					document.title = this.nom + ' - Digisteps by La Digitale'
@@ -1318,7 +1366,7 @@ export default {
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }) }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs, fond: this.fond }) }
 			xhr.send(JSON.stringify(json))
 		},
 		async modifierBloc () {
@@ -1372,7 +1420,7 @@ export default {
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), fichiers: JSON.stringify(fichiers) }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs, fond: this.fond }), fichiers: JSON.stringify(fichiers) }
 			xhr.send(JSON.stringify(json))
 		},
 		fermerModaleContenu () {
@@ -1422,7 +1470,7 @@ export default {
 				}.bind(this)
 				xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 				xhr.setRequestHeader('Content-type', 'application/json')
-				const json = { parcours: this.id, donnees: JSON.stringify({ blocs: this.blocs }) }
+				const json = { parcours: this.id, donnees: JSON.stringify({ blocs: this.blocs, fond: this.fond }) }
 				xhr.send(JSON.stringify(json))
 			}
 		},
@@ -1453,7 +1501,7 @@ export default {
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }) }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs, fond: this.fond }) }
 			xhr.send(JSON.stringify(json))
 		},
 		dupliquerFichier (fichier) {
@@ -1523,7 +1571,7 @@ export default {
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }) }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs, fond: this.fond }) }
 			xhr.send(JSON.stringify(json))
 		},
 		afficherSupprimerBloc (id) {
@@ -1569,7 +1617,7 @@ export default {
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), fichiers: JSON.stringify(fichiers) }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs, fond: this.fond }), fichiers: JSON.stringify(fichiers) }
 			xhr.send(JSON.stringify(json))
 		},
 		ouvrirModaleCriteres (criteres) {
@@ -1708,7 +1756,7 @@ export default {
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }) }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs, fond: this.fond }) }
 			xhr.send(JSON.stringify(json))
 		},
 		annulerRetroaction () {
@@ -1768,7 +1816,7 @@ export default {
 			}.bind(this)
 			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 			xhr.setRequestHeader('Content-type', 'application/json')
-			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs }), fichiers: JSON.stringify(fichiers) }
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs, fond: this.fond }), fichiers: JSON.stringify(fichiers) }
 			xhr.send(JSON.stringify(json))
 		},
 		fermerModaleTravaux () {
@@ -2265,13 +2313,97 @@ export default {
 								}.bind(this)
 								xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 								xhr.setRequestHeader('Content-type', 'application/json')
-								const json = { parcours: this.id, donnees: JSON.stringify({ blocs: donnees.blocs }) }
+								const json = { parcours: this.id, donnees: JSON.stringify({ blocs: donnees.blocs, fond: this.fond }) }
 								xhr.send(JSON.stringify(json))
 							}.bind(this))
 						}.bind(this))
 					}
 				}.bind(this))
 			}
+		},
+		televerserFond (event) {
+			const fichier = event.target.files[0]
+			if (fichier === null || fichier.length === 0) {
+				document.querySelector('#televerser-fond').value = ''
+				return false
+			} else {
+				this.$parent.$parent.chargement = true
+				const blob = document.querySelector('#televerser-fond').files[0]
+				if (blob.size < 2 * 1024000) {
+					const formData = new FormData()
+					formData.append('ancienfond', this.fond)
+					formData.append('parcours', this.id)
+					formData.append('blob', blob)
+					let xhr = new XMLHttpRequest()
+					xhr.onload = function () {
+						if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+							if (xhr.responseText === 'erreur') {
+								this.$parent.$parent.message = this.$t('erreurTeleversement')
+								document.querySelector('#televerser-fond').value = ''
+							} else {
+								const fond = xhr.responseText
+								xhr = new XMLHttpRequest()
+								xhr.onload = function () {
+									if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+										this.$parent.$parent.chargement = false
+										this.modale = ''
+										if (xhr.responseText === 'erreur') {
+											this.$parent.$parent.message = this.$t('erreurServeur')
+										} else if (xhr.responseText === 'non_autorise') {
+											this.$parent.$parent.message = this.$t('actionNonAutorisee')
+										} else if (xhr.responseText === 'parcours_modifie') {
+											this.fond = fond
+											this.$parent.$parent.notification = this.$t('imageEnTeteModifiee')
+										}
+									} else {
+										this.$parent.$parent.chargement = false
+										this.$parent.$parent.message = this.$t('erreurServeur')
+									}
+								}.bind(this)
+								xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
+								xhr.setRequestHeader('Content-type', 'application/json')
+								const json = { parcours: this.id, donnees: JSON.stringify({ blocs: this.blocs, fond: fond }) }
+								xhr.send(JSON.stringify(json))
+							}
+						} else {
+							this.$parent.$parent.message = this.$t('erreurTeleversement')
+							document.querySelector('#televerser-fond').value = ''
+						}
+					}.bind(this)
+					xhr.open('POST', this.$parent.$parent.hote + 'inc/televerser_fond.php', true)
+					xhr.send(formData)
+				} else {
+					this.$parent.$parent.message = this.$t('tailleMax', { taille: 2 })
+					document.querySelector('#televerser-fond').value = ''
+				}
+			}
+		},
+		supprimerFond () {
+			this.$parent.$parent.chargement = true
+			const fichiers = []
+			fichiers.push(this.fond)
+			const xhr = new XMLHttpRequest()
+			xhr.onload = function () {
+				if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+					this.$parent.$parent.chargement = false
+					this.modale = ''
+					if (xhr.responseText === 'erreur') {
+						this.$parent.$parent.message = this.$t('erreurServeur')
+					} else if (xhr.responseText === 'non_autorise') {
+						this.$parent.$parent.message = this.$t('actionNonAutorisee')
+					} else if (xhr.responseText === 'parcours_modifie') {
+						this.fond = ''
+						this.$parent.$parent.notification = this.$t('imageEnTeteSupprimee')
+					}
+				} else {
+					this.$parent.$parent.chargement = false
+					this.$parent.$parent.message = this.$t('erreurServeur')
+				}
+			}.bind(this)
+			xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
+			xhr.setRequestHeader('Content-type', 'application/json')
+			const json = { parcours: this.id, donnees: JSON.stringify({ blocs: this.blocs, fond: '' }), fichiers: JSON.stringify(fichiers) }
+			xhr.send(JSON.stringify(json))
 		},
 		terminerSession () {
 			this.$parent.$parent.chargement = true
@@ -2387,12 +2519,31 @@ export default {
 	user-select: none;
 }
 
+#parcours header.avec-fond {
+	display: flex;
+	align-items: center;
+	height: 140px;
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+#parcours #masque {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(255, 255, 255, 0.5);
+}
+
 #conteneur-header {
 	display: flex;
     padding: 0 20px;
     margin: auto;
     width: 100%;
 	max-width: 1024px;
+	z-index: 1;
 }
 
 #conteneur-partage,
@@ -2400,7 +2551,6 @@ export default {
 #conteneur-logo {
     height: 40px;
 	line-height: 40px;
-    background: #fff;
 }
 
 #conteneur-logo {
@@ -2811,6 +2961,10 @@ section {
 	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
 	top: 54px;
 	width: 300px;
+}
+
+#menu-partager.avec-fond {
+	top: 99px;
 }
 	
 #menu-partager:after {
@@ -3352,6 +3506,14 @@ section {
 	font-size: 0;
 }
 
+#modale-fond .actions {
+	margin-top: 20px;
+}
+
+#modale-fond .actions label {
+	margin-bottom: 0;
+}
+
 #codeqr.modale .contenu {
 	text-align: center;
 	font-size: 0;
@@ -3369,7 +3531,6 @@ section {
 #blocs .bloc .lire__link-wrap {
 	display: inline-block;
     font-size: 13px;
-    padding: 4px 10px;
     border: 1px solid;
 	cursor: pointer;
 	margin-top: 8px;
@@ -3384,6 +3545,12 @@ section {
 
 #blocs .bloc.section .lire__link-wrap {
 	margin-bottom: 0;
+}
+
+#blocs .bloc .lire__link-wrap a {
+	display: block;
+	padding: 5px 10px;
+	line-height: 1;
 }
 
 #codeqr.modale #qr {
