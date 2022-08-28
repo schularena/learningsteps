@@ -593,6 +593,7 @@
 						</div>
 						<label>{{ $t('questionSecrete') }}</label>
 						<select :value="question" @change="question = $event.target.value">
+							<option value="" selected>-</option>
 							<option v-for="(item, index) in questions" :value="item" :key="'option_' + index">{{ $t(item) }}</option>
 						</select>
 						<label>{{ $t('reponseSecrete') }}</label>
@@ -699,6 +700,7 @@
 					<div class="contenu">
 						<label>{{ $t('questionSecreteActuelle') }}</label>
 						<select :value="question" @change="question = $event.target.value">
+							<option value="" selected>-</option>
 							<option v-for="(item, index) in questions" :value="item" :key="'option_' + index">{{ $t(item) }}</option>
 						</select>
 						<label>{{ $t('reponseSecreteActuelle') }}</label>
