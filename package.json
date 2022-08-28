@@ -4,7 +4,7 @@
   "homepage": "https://ladigitale.dev/digisteps/",
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/ladigitale/digisteps.git"
+    "url": "https://codeberg.org/ladigitale/digisteps.git"
   },
   "author": {
     "name": "Emmanuel ZIMMERT",
