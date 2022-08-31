@@ -1,10 +1,12 @@
+const { defineConfig } = require('@vue/cli-service')
 const path = require('path')
 
-module.exports = {
+module.exports = defineConfig({
 	publicPath: './',
 	outputDir: 'dist',
 	assetsDir: 'static',
 	productionSourceMap: false,
+	transpileDependencies: true,
 	devServer: {
 		proxy: {
 			'^/inc': {
@@ -15,11 +17,18 @@ module.exports = {
 	},
 	chainWebpack: config => {
 		config.plugin('copy').tap(args => {
-			args[0].push({
+			args[0].patterns = [{
+				from: path.resolve(__dirname, 'public/static'),
+				to: path.resolve(__dirname, 'dist/static'),
+				toType: 'dir'
+			},
+			{
 				from: path.resolve(__dirname, 'inc'),
 				to: path.resolve(__dirname, 'dist/inc'),
 				toType: 'dir',
-				ignore: ['*.db']
+				globOptions: {
+					ignore: ['*.db']
+				}
 			},
 			{
 				from: path.resolve(__dirname, 'fichiers'),
@@ -35,8 +44,8 @@ module.exports = {
 				from: path.resolve(__dirname, 'LICENSE'),
 				to: path.resolve(__dirname, 'dist'),
 				toType: 'dir'
-			})
+			}]
 			return args
 		})
 	}
-}
+})

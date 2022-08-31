@@ -55,7 +55,7 @@
 
 <script>
 export default {
-	name: 'Accueil',
+	name: 'Accueil-Digisteps',
 	data () {
 		return {
 			modale: '',

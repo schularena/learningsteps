@@ -59,12 +59,12 @@
 					<div id="actions" v-if="admin">
 						<span id="ajouter" class="bouton" role="button" tabindex="0" @click="ouvrirModaleBloc('creation', '')">{{ $t('ajouterEtape') }}</span>
 					</div>
-					<draggable id="blocs" class="admin" v-model="blocs" :animation="250" :sort="true" :swap-threshold="0.5" :force-fallback="true" :fallback-tolerance="10" filter=".statique, .lire__link-wrap" :preventOnFilter="false" draggable=".bloc" @end="modifierPositionBloc" v-if="blocs.length > 0 && admin">
+					<draggable id="blocs" class="admin" v-model="blocs" :animation="250" :sort="true" :swap-threshold="0.5" :force-fallback="true" :fallback-tolerance="10" filter=".statique, .lire_bouton" :preventOnFilter="false" draggable=".bloc" @end="modifierPositionBloc" v-if="blocs.length > 0 && admin">
 						<template v-for="(bloc, indexBloc) in blocs" :key="'bloc_' + indexBloc">
 							<article :id="bloc.id" class="bloc section" :class="{'invisible': bloc.visibilite === false}" v-if="bloc.type === 'section'">
 								<div class="contenu">
 									<span class="titre" :style="{'border-color': bloc.couleur}">{{ bloc.titre }}</span>
-									<span class="texte" v-if="bloc.texte !== ''" v-html="bloc.texte" />
+									<span class="texte" :data-bloc="bloc.id" v-if="bloc.texte !== ''" v-html="bloc.texte" />
 								</div>
 								<div class="actions statique">
 									<span @click="modifierVisibiliteBloc(bloc.id)" :title="$t('masquer')" v-if="bloc.visibilite === true"><i class="material-icons">visibility</i></span>
@@ -83,7 +83,7 @@
 								</div>
 								<div class="contenu" :class="bloc.type">
 									<span class="titre" :style="{'border-color': bloc.couleur}">{{ bloc.titre }}</span>
-									<span class="texte" v-if="bloc.texte !== ''" v-html="bloc.texte" />
+									<span class="texte" :data-bloc="bloc.id" v-if="bloc.texte !== ''" v-html="bloc.texte" />
 									<div class="date-et-horaire" v-if="bloc.date !== '' && bloc.debut !== '' & bloc.fin !== ''">
 										<span class="date"><i class="material-icons">event_note</i>{{ definirDate(bloc.date) }}</span>
 										<span class="horaire"><i class="material-icons">schedule</i>{{ definirHoraire(bloc.date, bloc.debut, bloc.fin) }}</span>
@@ -113,7 +113,7 @@
 							<article :id="bloc.id" class="bloc section" v-if="bloc.visibilite === true && bloc.type === 'section'">
 								<div class="contenu">
 									<span class="titre" :style="{'border-color': bloc.couleur}">{{ bloc.titre }}</span>
-									<span class="texte" v-if="bloc.texte !== ''" v-html="bloc.texte" />
+									<span class="texte" :data-bloc="bloc.id" v-if="bloc.texte !== ''" v-html="bloc.texte" />
 								</div>
 							</article>
 							<article :id="bloc.id" class="bloc" :class="{'verrouille': bloc.hasOwnProperty('code') === true && bloc.code !== ''}" :style="{'background': eclaircirCouleur(bloc.couleur)}" v-else-if="bloc.visibilite === true && bloc.type !== 'section'">
@@ -132,7 +132,7 @@
 								</transition>
 								<div class="contenu" :class="bloc.type" v-if="!bloc.hasOwnProperty('code') || bloc.code === ''">
 									<span class="titre" :style="{'border-color': bloc.couleur}">{{ bloc.titre }}</span>
-									<span class="texte" v-if="bloc.texte !== ''" v-html="bloc.texte" />
+									<span class="texte" :data-bloc="bloc.id" v-if="bloc.texte !== ''" v-html="bloc.texte" />
 									<div class="date-et-horaire" v-if="bloc.date !== '' && bloc.debut !== '' && bloc.fin !== ''">
 										<span class="date"><i class="material-icons">event_note</i>{{ definirDate(bloc.date) }}</span>
 										<span class="horaire"><i class="material-icons">schedule</i>{{ definirHoraire(bloc.date, bloc.debut, bloc.fin) }}</span>
@@ -782,7 +782,7 @@ import ClipboardJS from 'clipboard'
 import pell from 'pell'
 import linkifyHtml from 'linkify-html'
 import eol from 'eol'
-import ReadSmore from 'read-smore'
+import ReadMore from '../../src/assets/read-more/read-more'
 import moment from 'moment'
 import imagesLoaded from 'imagesloaded'
 import { saveAs } from 'file-saver'
@@ -791,7 +791,7 @@ import JSZip from 'jszip'
 import { VueDraggableNext } from 'vue-draggable-next'
 
 export default {
-	name: 'Editeur',
+	name: 'Editeur-Digisteps',
 	components: {
 		draggable: VueDraggableNext
 	},
@@ -989,6 +989,7 @@ export default {
 			document.getElementsByTagName('html')[0].setAttribute('lang', langue)
 			this.$parent.$parent.notification = this.$t('langueModifiee')
 			localStorage.setItem('digisteps_lang', langue)
+			this.verifierTextes()
 		},
 		verifierJSON (json) {
 			try {
@@ -1006,10 +1007,11 @@ export default {
 				lessText: this.$t('reduire'),
 				wordsCount: 20
 			}
-			// eslint-disable-next-line
-			ReadSmore(textes, options).destroy()
-			// eslint-disable-next-line
-			ReadSmore(textes, options).init()
+			const blocs = this.blocs.filter(function (element) {
+				return element.texte !== ''
+			})
+			ReadMore(textes, options, blocs).destroy()
+			ReadMore(textes, options, blocs).init()
 		},
 		afficherMenuPartager () {
 			this.menu = 'partager'
@@ -3530,7 +3532,7 @@ section {
 </style>
 
 <style>
-#blocs .bloc .lire__link-wrap {
+#blocs .bloc .lire_bouton {
 	display: inline-block;
     font-size: 13px;
     border: 1px solid;
@@ -3540,16 +3542,16 @@ section {
 	transition: all .1s ease-in;
 }
 
-#blocs .bloc .lire__link-wrap:hover {
+#blocs .bloc .lire_bouton:hover {
 	background: #001d1d;
 	color: #fff;
 }
 
-#blocs .bloc.section .lire__link-wrap {
+#blocs .bloc.section .lire_bouton {
 	margin-bottom: 0;
 }
 
-#blocs .bloc .lire__link-wrap a {
+#blocs .bloc .lire_bouton a {
 	display: block;
 	padding: 5px 10px;
 	line-height: 1;
