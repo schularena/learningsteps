@@ -197,7 +197,6 @@ export default {
 	parcoursImporte: 'Learning path imported.',
 	parcoursExporte: 'Learning path exported.',
 	selectionnerFichierImport: 'Select a .zip file',
-	alerteImporter: 'Please note that all the content of the current learning path will be replaced by the imported content.',
 	fermer: 'Close',
 	modifierEnTeteParcours: 'Change the header of the learning path',
 	ajouterImageEnTete: 'Add a header image',
@@ -205,5 +204,8 @@ export default {
 	alerteImageEnTete: 'Recommended image size: minimum 1024px wide and minimum 140px high',
 	selectionnerImage: 'Select an image',
 	imageEnTeteModifiee: 'Header image changed.',
-	imageEnTeteSupprimee: 'Header image deleted.'
+	imageEnTeteSupprimee: 'Header image deleted.',
+	parametreImport: 'Import setting',
+	ajouterContenuImporte: 'Add imported content to current content',
+	remplacerContenuImporte: 'Replace the current content with the imported content',
 }

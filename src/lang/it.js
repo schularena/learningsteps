@@ -197,7 +197,6 @@ export default {
 	parcoursImporte: 'Percorso importato.',
 	parcoursExporte: 'Percorso esportato.',
 	selectionnerFichierImport: 'Selezionare un file .zip',
-	alerteImporter: 'Si noti che tutti i contenuti del percorso corrente saranno sostituiti da quelli importati.',
 	fermer: 'Chiudere',
 	modifierEnTeteParcours: 'Cambia l\'intestazione del percorso',
 	ajouterImageEnTete: 'Aggiungere un\'immagine di intestazione',
@@ -205,5 +204,8 @@ export default {
 	alerteImageEnTete: 'Dimensioni dell\'immagine consigliate: minimo 1024px di larghezza e minimo 140px di altezza',
 	selectionnerImage: 'Selezionare un\'immagine',
 	imageEnTeteModifiee: 'Immagine di intestazione modificata.',
-	imageEnTeteSupprimee: 'Immagine di intestazione cancellata.'
+	imageEnTeteSupprimee: 'Immagine di intestazione cancellata.',
+	parametreImport: 'Parametro di importazione',
+	ajouterContenuImporte: 'Aggiungere il contenuto importato al contenuto corrente',
+	remplacerContenuImporte: 'Sostituire il contenuto attuale con quello importato'
 }
