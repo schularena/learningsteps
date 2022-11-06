@@ -639,7 +639,15 @@
 				</header>
 				<div class="conteneur">
 					<div class="contenu">
-						<p>{{ $t('alerteImporter') }}</p>
+						<div class="parametre-import">
+							<label>{{ $t('parametreImport') }}</label>
+							<label class="bouton-radio">{{ $t('ajouterContenuImporte') }}
+								<input type="radio" name="import" :checked="parametreImport === 'ajouter'" @change="parametreImport = 'ajouter'">
+							</label>
+							<label class="bouton-radio">{{ $t('remplacerContenuImporte') }}
+								<input type="radio" name="import" :checked="parametreImport === 'remplacer'" @change="parametreImport = 'remplacer'">
+							</label>
+						</div>
 						<input type="file" id="importer" name="importer" style="display: none;" accept=".zip" @change="importerParcours">
 						<label for="importer" class="bouton large">{{ $t('selectionnerFichierImport') }}</label>
 					</div>
@@ -845,7 +853,8 @@ export default {
 			chargement: false,
 			codeqr: '',
 			position: 0,
-			progression: 0
+			progression: 0,
+			parametreImport: 'ajouter'
 		}
 	},
 	watch: {
@@ -2251,7 +2260,7 @@ export default {
 									nombreFichiers++
 								}
 							})
-							if (nombreFichiers === 0) {
+							if (nombreFichiers === 0 && this.parametreImport === 'remplacer') {
 								new Promise(function (resolve) {
 									const xhr = new XMLHttpRequest()
 									xhr.onload = function () {
@@ -2264,37 +2273,87 @@ export default {
 									xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
 									xhr.send('parcours=' + this.id)
 								}.bind(this))
-							} else {
-								for (const item of donnees.blocs) {
-									if (item.hasOwnProperty('fichier') && item.fichier !== '') {
-										const donneesFichier = new Promise(function (resolve) {
-											archive.files['fichiers/' + item.fichier].async('blob').then(function (blob) {
-												indexFichier++
-												const formData = new FormData()
-												formData.append('index', indexFichier)
-												formData.append('fichier', item.fichier)
-												formData.append('parcours', this.id)
-												formData.append('blob', blob)
-												const xhr = new XMLHttpRequest()
-												xhr.onload = function () {
-													if (xhr.readyState === xhr.DONE && xhr.status === 200) {
-														resolve('fichier_televerse')
-													} else {
-														resolve('erreur_televersement')
-													}
-												}.bind(this)
-												xhr.onerror = function () {
+							}
+							for (const item of donnees.blocs) {
+								if (item.hasOwnProperty('fichier') && item.fichier !== '') {
+									const donneesFichier = new Promise(function (resolve) {
+										archive.files['fichiers/' + item.fichier].async('blob').then(function (blob) {
+											indexFichier++
+											const formData = new FormData()
+											formData.append('index', indexFichier)
+											formData.append('parametre', this.parametreImport)
+											formData.append('fichier', item.fichier)
+											formData.append('parcours', this.id)
+											formData.append('blob', blob)
+											const xhr = new XMLHttpRequest()
+											xhr.onload = function () {
+												if (xhr.readyState === xhr.DONE && xhr.status === 200) {
+													resolve('fichier_televerse')
+												} else {
 													resolve('erreur_televersement')
 												}
-												xhr.open('POST', this.$parent.$parent.hote + 'inc/televerser_fichier_import.php', true)
-												xhr.send(formData)
-											}.bind(this))
+											}.bind(this)
+											xhr.onerror = function () {
+												resolve('erreur_televersement')
+											}
+											xhr.open('POST', this.$parent.$parent.hote + 'inc/televerser_fichier_import.php', true)
+											xhr.send(formData)
 										}.bind(this))
-										donneesFichiers.push(donneesFichier)
-									}
+									}.bind(this))
+									donneesFichiers.push(donneesFichier)
 								}
 							}
 							Promise.all(donneesFichiers).then(function () {
+								let json
+								const blocs = JSON.parse(JSON.stringify(this.blocs))
+								if (this.parametreImport === 'ajouter') {
+									donnees.blocs.forEach(function (bloc) {
+										blocs.push(bloc)
+									})
+									const blocsId = []
+									blocs.forEach(function (bloc) {
+										blocsId.push(bloc.id)
+									})
+									if ((new Set(blocsId)).size !== blocsId.length) {
+										const doublons = this.trouverDoublons(blocsId)
+										const positionDoublons = []
+										blocs.forEach(async function (item, index) {
+											let bloc = {}
+											let indexBloc
+											if (doublons.includes(item.id) === true) {
+												let nombre = 0
+												positionDoublons.push(item.id)
+												positionDoublons.forEach(function (doublon) {
+													if (doublon === item.id) {
+														nombre++
+													}
+												})
+												if (nombre > 1) {
+													bloc = item
+													indexBloc = index
+												}
+											}
+											if (Object.keys(bloc).length > 0) {
+												bloc.id = 'etape-' + (new Date()).getTime() + Math.random().toString(16).slice(10)
+												if (bloc.hasOwnProperty('fichier') === true && bloc.fichier !== '') {
+													const fichier = await this.dupliquerFichier(bloc.fichier)
+													if (fichier !== 'erreur') {
+														bloc.fichier = fichier
+													}
+												}
+												if (bloc.hasOwnProperty('travaux') === true) {
+													bloc.travaux = []
+												}
+												blocs.splice(indexBloc, 1, bloc)
+											}
+										}.bind(this))
+										json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs, fond: this.fond }) }
+									} else {
+										json = { parcours: this.id, donnees: JSON.stringify({ blocs: blocs, fond: this.fond }) }
+									}
+								} else {
+									json = { parcours: this.id, donnees: JSON.stringify({ blocs: donnees.blocs, fond: this.fond }) }
+								}
 								const xhr = new XMLHttpRequest()
 								xhr.onload = function () {
 									if (xhr.readyState === xhr.DONE && xhr.status === 200) {
@@ -2304,11 +2363,15 @@ export default {
 										} else if (xhr.responseText === 'non_autorise') {
 											this.$parent.$parent.message = this.$t('actionNonAutorisee')
 										} else if (xhr.responseText === 'parcours_modifie') {
-											this.blocs = donnees.blocs
-											this.$parent.$parent.notification = this.$t('parcoursImporte')
+											if (this.parametreImport === 'ajouter') {
+												this.blocs = blocs
+											} else {
+												this.blocs = donnees.blocs
+											}
 											this.$nextTick(function () {
 												this.verifierTextes()
 											})
+											this.$parent.$parent.notification = this.$t('parcoursImporte')
 										}
 									} else {
 										this.$parent.$parent.chargement = false
@@ -2317,13 +2380,15 @@ export default {
 								}.bind(this)
 								xhr.open('POST', this.$parent.$parent.hote + 'inc/modifier_parcours.php', true)
 								xhr.setRequestHeader('Content-type', 'application/json')
-								const json = { parcours: this.id, donnees: JSON.stringify({ blocs: donnees.blocs, fond: this.fond }) }
 								xhr.send(JSON.stringify(json))
 							}.bind(this))
 						}.bind(this))
 					}
 				}.bind(this))
 			}
+		},
+		trouverDoublons (array) {
+			return array.filter((item, index) => array.indexOf(item) !== index)
 		},
 		televerserFond (event) {
 			const fichier = event.target.files[0]
@@ -3516,6 +3581,14 @@ section {
 
 #modale-fond .actions label {
 	margin-bottom: 0;
+}
+
+.modale .parametre-import {
+	margin-bottom: 20px;
+}
+
+.modale .parametre-import label.bouton-radio {
+	font-weight: 400;
 }
 
 #codeqr.modale .contenu {
