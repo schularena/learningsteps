@@ -2328,6 +2328,7 @@ export default {
 														nombre++
 													}
 												})
+												// Cibler le doublon -> 2e éléments avec la même id
 												if (nombre > 1) {
 													bloc = item
 													indexBloc = index
