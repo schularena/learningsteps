@@ -32,8 +32,8 @@ export default {
 			chargementParcours: true,
 			message: '',
 			notification: '',
-			langues: ['fr', 'it', 'en'],
-			langue: 'fr'
+			langues: ['de', 'fr', 'it', 'en'],
+			langue: 'de'
 		}
 	},
 	watch: {
