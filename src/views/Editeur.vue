@@ -587,6 +587,7 @@
 				<div class="conteneur">
 					<div class="contenu">
 						<div class="langue">
+							<span :class="{'selectionne': $parent.$parent.langue === 'de'}" @click="modifierLangue('de')">FR</span>
 							<span :class="{'selectionne': $parent.$parent.langue === 'fr'}" @click="modifierLangue('fr')">FR</span>
 							<span :class="{'selectionne': $parent.$parent.langue === 'it'}" @click="modifierLangue('it')">IT</span>
 							<span :class="{'selectionne': $parent.$parent.langue === 'en'}" @click="modifierLangue('en')">EN</span>
