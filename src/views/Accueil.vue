@@ -1,6 +1,6 @@
 <template>
 	<div id="page">
-		<div id="accueil" :style="{'background-image': 'url(./static/img/fond.png)'}">
+		<div id="accueil">
 			<div id="langues">
 				<span class="bouton" role="button" tabindex="0" :class="{'selectionne': $parent.$parent.langue === 'de'}" @click="modifierLangue('de')">DE</span>
 				<span class="bouton" role="button" tabindex="0" :class="{'selectionne': $parent.$parent.langue === 'fr'}" @click="modifierLangue('fr')">FR</span>
@@ -10,7 +10,7 @@
 			<div id="conteneur">
 				<div id="contenu">
 					<h1>
-						<span>Digisteps</span> <span>by La Digitale</span>
+						<span>Learningsteps</span> <span>by SchulArena.com</span>
 					</h1>
 					<div>
 						<p v-html="$t('slogan')" />
@@ -18,8 +18,7 @@
 					</div>
 				</div>
 				<div id="credits">
-					<p><a href="https://opencollective.com/ladigitale" target="_blank" rel="noreferrer">{{ $t('soutien') }}</a></p>
-					<p>{{ new Date().getFullYear() }} - <a href="https://ladigitale.dev" target="_blank" rel="noreferrer">La Digitale</a> - <a href="https://codeberg.org/ladigitale/digisteps" target="_blank" rel="noreferrer">{{ $t('codeSource') }}</a> - <span class="hub" @click="ouvrirHub"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#001d1d" width="36px" height="36px"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg></span></p>
+					<p>{{ new Date().getFullYear() }} - <a href="https://www.schularena.com/" target="_blank" rel="noreferrer">SchulArena.com</a> - <a href="https://github.com/schularena/learningsteps" target="_blank" rel="noreferrer">{{ $t('codeSource') }}</a></p>
 				</div>
 			</div>
 		</div>
@@ -46,10 +45,6 @@
 					</div>
 				</div>
 			</div>
-		</div>
-		<div id="hub" :class="{'ouvert': hub}">
-			<span @click="fermerHub"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fff" width="36px" height="36px"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></span>
-			<iframe src="https://ladigitale.dev/hub.html"></iframe>
 		</div>
 	</div>
 </template>
