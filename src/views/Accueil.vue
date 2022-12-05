@@ -18,7 +18,8 @@
 					</div>
 				</div>
 				<div id="credits">
-					<p>{{ new Date().getFullYear() }} - <a href="https://www.schularena.com/" target="_blank" rel="noreferrer">SchulArena.com</a> - <a href="https://github.com/schularena/learningsteps" target="_blank" rel="noreferrer">{{ $t('codeSource') }}</a></p>
+                    <p><a href="https://www.paypal.me/schularenacom" target="_blank" rel="noreferrer">{{ $t('soutien') }}</a></p>
+                    <p>{{ new Date().getFullYear() }} - <a href="https://www.schularena.com/" target="_blank" rel="noreferrer">SchulArena.com</a> - <a href="https://github.com/schularena/learningsteps" target="_blank" rel="noreferrer">{{ $t('codeSource') }}</a></p>
 				</div>
 			</div>
 		</div>
