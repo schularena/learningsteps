@@ -149,6 +149,8 @@ export default {
 }
 
 #accueil {
+    color: white;
+    background-image: url('../../public/static/img/bg.jpg');
 	background-size: cover;
 	background-position: center;
 	background-repeat: no-repeat;
@@ -169,7 +171,7 @@ export default {
 	font-size: 14px;
     width: 30px;
 	height: 30px;
-	background: #fff;
+	background: #ffffff5e;
     border-radius: 50%;
     border: 1px solid #ddd;
     margin-right: 10px;
@@ -206,7 +208,7 @@ export default {
 }
 
 #conteneur h1 {
-    font-family: 'HKGroteskWide-ExtraBold', 'HKGrotesk-ExtraBold', sans-serif;
+    text-shadow: 1px 1px 1px rgb(0 0 0 / 20%);
     font-size: 3em;
 	font-weight: 900;
     margin-bottom: 0.85em;

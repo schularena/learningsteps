@@ -847,8 +847,8 @@ export default {
 			vignette: '',
 			heures: 0,
 			minutes: 0,
-			couleur: '#00ced1',
-			couleurs: ['#00ced1', '#55efc4', '#74b9ff', '#a29bfe', '#ffeaa7', '#fab1a0', '#fea7c6'],
+			couleur: 'red',
+			couleurs: ['red', '#55efc4', '#74b9ff', '#a29bfe', '#ffeaa7', '#fab1a0', '#fea7c6'],
 			pseudo: '',
 			motdepasse: '',
 			chargement: false,
@@ -1461,7 +1461,7 @@ export default {
 			this.indice = ''
 			this.heures = 0
 			this.minutes = 0
-			this.couleur = '#00ced1'
+			this.couleur = 'red'
 			this.progression = 0
 		},
 		modifierPositionBloc () {
@@ -2649,7 +2649,7 @@ export default {
 #logo {
     width: 24px;
     height: 24px;
-    background: #00ced1;
+    background: red;
     display: inline-block;
     border-radius: 50%;
     margin: 8px 8px 8px 0;
@@ -2657,7 +2657,6 @@ export default {
 
 #titre {
 	width: calc(100% - 103px);
-	font-family: 'Roboto-Slab';
 	font-size: 18px;
     padding: 0 7px;
     line-height: 40px;
@@ -2804,7 +2803,6 @@ section {
 }
 
 #blocs .bloc .titre {
-	font-family: 'Roboto-Slab';
 	display: block;
 	font-size: 18px;
 	padding-bottom: 10px;
@@ -3367,7 +3365,7 @@ section {
 	display: inline-block;
 	width: 34px;
 	height: 34px;
-	color: #00ced1;
+	color: red;
 	font-size: 34px;
 	cursor: pointer;
 	margin-bottom: 20px;
