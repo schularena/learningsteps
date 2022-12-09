@@ -50,7 +50,7 @@
 						<input type="text" disabled :value="'<iframe src=&quot;' + definirRacine() + '#/s/' + id + '&quot; allowfullscreen frameborder=&quot;0&quot; width=&quot;100%&quot; height=&quot;500&quot;></iframe>'">
 						<span class="icone" role="button" tabindex="0" :title="$t('copierCode')"><i class="material-icons">content_copy</i></span>
 					</div>
-					<p class="credits">{{ $t('creeAvec') }}<a href="https://ladigitale.dev/digisteps/" target="_blank" rel="noreferrer"><u>Digisteps by La Digitale</u></a></p>
+					<p class="credits">{{ $t('creeAvec') }}<a href="https://www.learningsteps.ch/" target="_blank" rel="noreferrer"><u>LearningSteps.ch</u></a></p>
 				</div>
 			</div>
 
@@ -221,9 +221,9 @@
 									<option value="fichier" :selected="ressource === 'fichier'">{{ $t('fichier') }}</option>
 								</select>
 								<label for="champ-lien" v-if="ressource === 'lien'">{{ $t('lien') }}</label>
-								<input id="champ-lien" type="text" :placeholder="$t('exemples') + 'https://ladigitale.dev/digiplay, https://ladigitale.dev/digiread'" :value="lien" @input="lien = $event.target.value" v-if="type === 'document' && ressource === 'lien'">
-								<input id="champ-lien" type="text" :placeholder="$t('exemples') + 'https://digistorm.app, https://ladigitale.dev/digiquiz'" :value="lien" @input="lien = $event.target.value" v-else-if="type === 'exercice' && ressource === 'lien'">
-								<input id="champ-lien" type="text" :placeholder="$t('exemples') + 'https://digipad.app, https://ladigitale.dev/digidoc'" :value="lien" @input="lien = $event.target.value" v-else-if="type === 'activite' && ressource === 'lien'">
+								<input id="champ-lien" type="text" :placeholder="$t('exemples') + 'https://www.schularena.com/, https://www.classroom.ch/, https://www.recarena.ch/' " :value="lien" @input="lien = $event.target.value" v-if="type === 'document' && ressource === 'lien'">
+								<input id="champ-lien" type="text" :placeholder="$t('exemples') + 'https://www.schularena.com/, https://www.classroom.ch/, https://www.recarena.ch/'" :value="lien" @input="lien = $event.target.value" v-else-if="type === 'exercice' && ressource === 'lien'">
+								<input id="champ-lien" type="text" :placeholder="$t('exemples') + 'https://www.schularena.com/, https://www.classroom.ch/, https://www.recarena.ch/'" :value="lien" @input="lien = $event.target.value" v-else-if="type === 'activite' && ressource === 'lien'">
 								<label v-if="ressource === 'fichier'">{{ $t('fichierMax', { taille: 2 }) }}</label>
 								<div id="fichier" v-if="ressource === 'fichier'">
 									<a class="bouton" :href="definirRacine() + 'fichiers/' + id + '/' + fichier" target="_blank" v-if="mode === 'edition' && fichier !== '' && ancienFichier === fichier">{{ $t('voirFichierActuel') }}</a>
@@ -900,7 +900,7 @@ export default {
 					}
 				}
 				setTimeout(function () {
-					document.title = this.nom + ' - Digisteps by La Digitale'
+					document.title = this.nom + ' - LearningSteps.ch'
 					this.verifierTextes()
 					imagesLoaded('#blocs', { background: true }, function () {
 						this.$parent.$parent.chargementParcours = false
@@ -2085,7 +2085,7 @@ export default {
 						} else if (xhr.responseText === 'nom_modifie') {
 							this.nom = nom
 							this.$parent.$parent.notification = this.$t('nomModifie')
-							document.title = this.nom + ' - Digisteps by La Digitale'
+							document.title = this.nom + ' - LearningSteps.ch'
 						}
 					} else {
 						this.$parent.$parent.chargement = false
@@ -2515,7 +2515,7 @@ export default {
 					} else if (xhr.responseText === 'non_autorise') {
 						this.$parent.$parent.message = this.$t('actionNonAutorisee')
 					} else if (xhr.responseText === 'parcours_supprime') {
-						document.title = 'Digisteps by La Digitale'
+						document.title = 'LearningSteps.ch'
 						this.$router.push('/')
 					}
 				} else {
