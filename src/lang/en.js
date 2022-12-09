@@ -1,5 +1,5 @@
 export default {
-	slogan: '<strong>Digisteps</strong> allows you to create online <strong>learning paths</strong>.',
+	slogan: '<strong>Learningsteps</strong> allows you to create online <strong>learning paths</strong>.',
 	soutien: 'I would like to support this project ❤️.',
 	codeSource: 'Source code',
 	langueModifiee: 'Language changed.',
