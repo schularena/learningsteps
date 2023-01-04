@@ -211,7 +211,7 @@
 									</div>
 								</div>
 								<label for="champ-lieu">{{ $t('adresseLienVisio') }}</label>
-								<input id="champ-lieu" type="text" :placeholder="$t('exemple') + '5 rue des fleurs, 2000 La Digitale ou https://meet.jit.si'" :value="lieu" @input="lieu = $event.target.value">
+								<input id="champ-lieu" type="text" :placeholder="$t('exemple') + 'Vordergasse 18, 8200 Schaffhausen oder https://meet.jit.si'" :value="lieu" @input="lieu = $event.target.value">
 							</template>
 							<template v-else-if="type === 'document' || type === 'exercice' || type === 'activite'">
 								<label>{{ $t('typeRessource') }}</label>
@@ -347,10 +347,7 @@
 							<option value="icone_article" :selected="vignette === 'icone_article'">{{ $t('iconeDocument') }}</option>
 							<option value="icone_cloud_download" :selected="vignette === 'icone_cloud_download'">{{ $t('iconeNuage') }}</option>
 							<option value="icone_explore" :selected="vignette === 'icone_explore'">{{ $t('iconeBoussole') }}</option>
-							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="wikipedia" :selected="vignette === 'wikipedia'">Wikipedia</option>
-							<option value="canoprof" :selected="vignette === 'canoprof'">Canoprof</option>
-							<option value="tv5monde" :selected="vignette === 'tv5monde'">TV5MONDE</option>
 							<option value="lumni" :selected="vignette === 'lumni'">Lumni</option>
 							<option value="peertube" :selected="vignette === 'peertube'">Peertube</option>
 							<option value="pdf" :selected="vignette === 'pdf'">{{ $t('fichierPDF') }}</option>
@@ -369,7 +366,6 @@
 						</select>
 						<select id="vignette" @change="modifierVignette($event.target.value)" v-else-if="type === 'exercice'">
 							<option value="icone_check_circle" :selected="vignette === 'icone_check_circle'">{{ $t('iconeExercice') }}</option>
-							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="h5p" :selected="vignette === 'h5p'">H5P</option>
 							<option value="learningapps" :selected="vignette === 'learningapps'">Learning Apps</option>
 							<option value="snacks" :selected="vignette === 'snacks'">Learning Snacks</option>
@@ -379,7 +375,6 @@
 							<option value="icone_lightbulb" :selected="vignette === 'icone_lightbulb'">{{ $t('iconeActivite') }}</option>
 							<option value="icone_assessment" :selected="vignette === 'icone_assessment'">{{ $t('iconeEvaluation') }}</option>
 							<option value="icone_check_circle" :selected="vignette === 'icone_check_circle'">{{ $t('iconeCoche') }}</option>
-							<option value="ladigitale" :selected="vignette === 'ladigitale'">La Digitale</option>
 							<option value="h5p" :selected="vignette === 'h5p'">H5P</option>
 							<option value="quiziniere" :selected="vignette === 'quiziniere'">QuiZinière</option>
 							<option value="vocaroo" :selected="vignette === 'vocaroo'">Vocaroo</option>

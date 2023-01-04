@@ -10,7 +10,7 @@
 			<div id="conteneur">
 				<div id="contenu">
 					<h1>
-						<span>Learningsteps</span> <span>by SchulArena.com</span>
+						<span>Learningsteps</span>
 					</h1>
 					<div>
 						<p v-html="$t('slogan')" />
