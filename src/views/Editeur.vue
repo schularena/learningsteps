@@ -188,7 +188,7 @@
 						<label>{{ $t('typeEtape') }}</label>
 						<select @change="modifierType($event.target.value)">
 							<option value="-" :selected="type === '-'">-</option>
-							<option value="section" :selected="type === 'section'">-{{ $t('section') }}-</option>
+							<option value="section" :selected="type === 'section'">{{ $t('section') }}</option>
 							<option value="seance" :selected="type === 'seance'">{{ $t('seancePresenceDistance') }}</option>
 							<option value="document" :selected="type === 'document'">{{ $t('documentFichierLien') }}</option>
 							<option value="exercice" :selected="type === 'exercice'">{{ $t('exercice') }}</option>
