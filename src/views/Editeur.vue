@@ -2800,6 +2800,7 @@ section {
 #blocs .bloc .titre {
 	display: block;
 	font-size: 18px;
+    font-weight: bold;
 	padding-bottom: 10px;
 	border-bottom: 1px dashed transparent;
 	line-height: 1.4;
