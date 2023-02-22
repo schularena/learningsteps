@@ -440,7 +440,7 @@
 				<div class="conteneur ascenseur">
 					<div class="contenu">
 						<div :id="'travail' + travail.motdepasse" class="travail" v-for="(travail, indexTravail) in travaux" :key="'travail_' + indexTravail">
-							<span class="meta">{{ $t('par') }}<b>{{ travail.pseudo }}</b> {{ definirDateEtHeure(travail.date) }} <span class="motdepasse" v-html="'(' + $t('motDePasse') + travail.motdepasse + ')'" /></span>
+							<span class="meta">{{ $t('par') }} <b>{{ travail.pseudo }}</b> {{ definirDateEtHeure(travail.date) }} <span class="motdepasse" v-html="'(' + $t('motDePasse') + travail.motdepasse + ')'" /></span>
 							<div class="boutons">
 								<a class="bouton icone" :href="travail.lien" target="_blank" :title="$t('ouvrirLienTravail')" v-if="travail.lien !== ''"><i class="material-icons">open_in_new</i></a>
 								<a class="bouton icone" :href="definirRacine() + 'fichiers/' + id + '/' + travail.fichier" target="_blank" :title="$t('telerchargerTravail')" v-else-if="travail.fichier !== ''"><i class="material-icons">get_app</i></a>
@@ -977,13 +977,13 @@ export default {
 			}
 		},
 		definirDate (date) {
-			return 'le ' + moment(new Date(date)).locale('fr').format('L')
+			return 'am ' + moment(new Date(date)).locale('de').format('L')
 		},
 		definirHoraire (date, debut, fin) {
-			return 'de ' + moment(new Date(date + ' ' + debut)).locale('fr').format('LT') + ' à ' + moment(new Date(date + ' ' + fin)).locale('fr').format('LT') 
+			return 'seit ' + moment(new Date(date + ' ' + debut)).locale('de').format('LT') + ' um ' + moment(new Date(date + ' ' + fin)).locale('de').format('LT')
 		},
 		definirDateEtHeure (date) {
-			return 'le ' + moment(new Date(date)).locale('fr').format('L') + ' à ' + moment(new Date(date)).locale('fr').format('LT')
+			return 'am ' + moment(new Date(date)).locale('de').format('L') + ' um ' + moment(new Date(date)).locale('de').format('LT')
 		},
 		definirDomaine (url) {
 			return (new URL(url)).hostname
