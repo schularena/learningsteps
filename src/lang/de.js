@@ -1,5 +1,5 @@
 export default {
-	slogan: 'Mit <strong>learningsteps.ch</strong> kannst du <strong>digitale Lernpfade</strong> erstellen.',
+	slogan: 'Mit <strong>learningsteps.ch</strong> kannst du <strong>digitale Lernpfade</strong> erstellen.<br><span style="font-size: 90%; opacity: 0.8">Das Angebot richtet sich ausschliesslich an Schulen in der Schweiz.</span>',
 	soutien: 'Ich möchte das Projekt unterstützen ❤️.',
 	codeSource: 'Quellcode',
 	langueModifiee: 'Sprache geändert',
