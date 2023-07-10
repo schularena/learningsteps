@@ -19,7 +19,8 @@
 				</div>
 				<div id="credits">
                     <p><a href="https://www.paypal.me/schularenacom" target="_blank" rel="noreferrer">{{ $t('soutien') }}</a></p>
-                    <p>{{ new Date().getFullYear() }} - <a href="https://www.schularena.com/" target="_blank" rel="noreferrer">SchulArena.com</a> - <a href="https://github.com/schularena/learningsteps" target="_blank" rel="noreferrer">{{ $t('codeSource') }}</a></p>
+                    <p>Learningsteps – ein Webtool von ABALIR AG <span style="font-size: 90%; opacity: .8">(<a href="https://github.com/schularena/learningsteps" target="_blank" rel="noreferrer">{{ $t('codeSource') }}</a>)</span></p>
+                    <p>© {{ new Date().getFullYear() }} ABALIR AG</p>
 				</div>
 			</div>
 		</div>
