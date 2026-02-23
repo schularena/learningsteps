@@ -1,3 +1,10 @@
+# Learningsteps
+
+Deployment: 
+- `ssh sare`
+- `cd apps/learningsteps`
+- `git pull`
+
 # Digisteps
 
 Digisteps est une application simple pour créer des parcours pédagogiques en ligne. 
